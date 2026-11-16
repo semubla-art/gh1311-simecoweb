@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SimEco · Efecto látigo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F7F9;--surface:#FFFFFF;--surface-2:#EEF1F5;--ink:#12151B;--muted:#4F5866;--line:#DCE1E8;--accent:#1D5BD8;--accent-soft:#E6EEFC;--accent-2:#B4500B;--accent-2-soft:#FCEEE3;--ok:#1A7A4C;--font-head:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif}
+body{margin:0;background:var(--bg)}
+a{color:var(--accent)}a:hover{color:#163F99}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;margin:0;height:28px;accent-color:#1D5BD8}
+input[type=checkbox]{width:22px;height:22px;accent-color:#1D5BD8;margin:0}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5">
+<header style="background: var(--surface); border-bottom: 1px solid var(--line)">
+<div style="max-width: 1280px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); min-height: 44px">
+<svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1D5BD8"></rect><path d="M7 21 L13 14 L18 18 L25 9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-family: var(--font-head); font-weight: 700; font-size: 19px">SimEco</span>
+</a>
+<nav aria-label="Simulaciones" style="flex: 1 1 400px; min-width: 0; overflow-x: auto">
+<div style="display: flex; gap: 4px; white-space: nowrap; font-size: 14px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="8">
+<a href="{{n.href}}" aria-current="{{n.current}}" style="padding: 10px 12px; border-radius: 8px; text-decoration: none; color: {{n.fg}}; background: {{n.bg}}; font-weight: {{n.weight}}">{{n.label}}</a>
+</sc-for>
+</div>
+</nav>
+</div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 28px 24px 72px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 14px; color: var(--muted)"><a href="Main.dc.html">Inicio</a> / Cadena de suministro</p>
+<h1 style="margin: 0; font-family: var(--font-head); font-size: clamp(30px, 4vw, 44px); line-height: 1.1">Efecto látigo (bullwhip effect)</h1>
+<p style="margin: 0; font-size: 18px; color: var(--muted); max-width: 780px">El consumidor compra de forma bastante estable, pero cada eslabón pronostica y repone con retraso. Resultado: los pedidos se vuelven más erráticos cuanto más lejos se está del cliente.</p>
+</div>
+
+<section aria-label="Control de la simulación" style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<span role="status" aria-live="polite" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: {{st.bg}}; color: {{st.fg}}"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: {{st.fg}}"></span>{{st.label}}</span>
+<span style="font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums">Semana {{t}} de {{T}}</span>
+<div style="flex-grow: 1"></div>
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted)">Semilla
+<input type="number" min="1" max="9999" value="{{seed}}" onChange="{{setSeed}}" style="width: 88px; min-height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); font: 15px var(--font-body); color: var(--ink)">
+</label>
+<button type="button" onClick="{{toggle}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 600 15px var(--font-body); cursor: pointer">{{playLabel}}</button>
+<button type="button" onClick="{{step}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">Semana +1</button>
+<button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">Reiniciar</button>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<aside aria-labelledby="par-h" style="flex: 1 1 300px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+<h2 id="par-h" style="margin: 0; font-family: var(--font-head); font-size: 20px">Parámetros</h2>
+<sc-for list="{{params}}" as="p" hint-placeholder-count="4">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 15px">
+<label for="{{p.id}}" style="font-weight: 600">{{p.label}}</label>
+<output for="{{p.id}}" style="font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600">{{p.shown}}</output>
+</div>
+<input id="{{p.id}}" type="range" min="{{p.min}}" max="{{p.max}}" step="{{p.step}}" value="{{p.value}}" onChange="{{p.onChange}}" aria-describedby="{{p.hid}}" aria-valuetext="{{p.shown}}">
+<span id="{{p.hid}}" style="font-size: 13px; color: var(--muted)">{{p.hint}}</span>
+</div>
+</sc-for>
+<label style="display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; font-weight: 600"><input type="checkbox" checked="{{neg}}" onChange="{{toggleNeg}}">Permitir devoluciones (pedidos negativos)</label>
+</aside>
+
+<section aria-label="Resultados" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Amplificación de la varianza de pedidos</figcaption>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">Varianza de los pedidos de cada eslabón ÷ varianza de la demanda del consumidor. Teórico para el minorista: {{theory}}. Aguas arriba la amplificación se acumula aún más rápido, porque cada eslabón recibe pedidos ya distorsionados.</p>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{bars}}" as="b" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="width: 110px; font-size: 15px; font-weight: 600">{{b.name}}</span>
+<div style="flex: 1 1 200px; height: 22px; background: var(--surface-2); border-radius: 6px; overflow: hidden"><div style="height: 100%; width: {{b.w}}; background: {{b.color}}; border-radius: 6px"></div></div>
+<span style="width: 72px; text-align: right; font-family: var(--font-head); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums">{{b.v}}</span>
+</div>
+</sc-for>
+</div>
+</figure>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Pedidos semanales por eslabón</figcaption>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 0; border-top: 3px dotted #4F5866"></span>Consumidor</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #1D5BD8"></span>Minorista</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #0F7C80"></span>Mayorista</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #B4500B"></span>Distribuidor</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #6B3FC4"></span>Fábrica</span>
+</div>
+</div>
+<svg viewBox="0 0 720 320" style="width: 100%; height: auto; display: block" role="img" aria-label="{{alt}}">
+<line x1="56" y1="280" x2="700" y2="280" stroke="#9AA3AF"></line>
+<line x1="56" y1="20" x2="56" y2="280" stroke="#9AA3AF"></line>
+<line x1="56" y1="{{muY}}" x2="700" y2="{{muY}}" stroke="#E2E6EC"></line>
+<text x="50" y="284" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y0}}</text>
+<text x="50" y="{{muLabelY}}" text-anchor="end" font-size="12" fill="#4F5866">{{ax.mu}}</text>
+<text x="50" y="24" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y4}}</text>
+<text x="700" y="300" text-anchor="end" font-size="12" fill="#4F5866">semana {{T}}</text>
+<polyline points="{{l.s4}}" fill="none" stroke="#6B3FC4" stroke-width="2"></polyline>
+<polyline points="{{l.s3}}" fill="none" stroke="#B4500B" stroke-width="2"></polyline>
+<polyline points="{{l.s2}}" fill="none" stroke="#0F7C80" stroke-width="2"></polyline>
+<polyline points="{{l.s1}}" fill="none" stroke="#1D5BD8" stroke-width="2"></polyline>
+<polyline points="{{l.s0}}" fill="none" stroke="#4F5866" stroke-width="2.5" stroke-dasharray="2 4" stroke-linecap="round"></polyline>
+</svg>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">{{alt}}</p>
+</figure>
+</section>
+</div>
+
+<section aria-labelledby="exp-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="exp-h" style="margin: 0; font-family: var(--font-head); font-size: 26px">Entender la simulación</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué simula</h3>
+<p style="margin: 0; color: var(--muted); font-size: 15px">Cuatro eslabones en serie. Cada uno pronostica con un promedio móvil de las últimas p semanas de pedidos que recibe y repone con una política de nivel objetivo S = L · pronóstico. Sus pedidos son la demanda del eslabón siguiente.</p>
+<p style="margin: 0; font-size: 14px; font-family: ui-monospace, monospace; background: var(--surface-2); padding: 10px 12px; border-radius: 8px">q(t) = D(t) + (L/p)·[D(t) − D(t−p)]<br>Var(q)/Var(D) = 1 + 2L/p + 2L²/p²</p>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué significa cada parámetro</h3>
+<dl style="margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
+<sc-for list="{{params}}" as="p" hint-placeholder-count="4">
+<div><dt style="display: inline; font-weight: 600">{{p.label}}: </dt><dd style="display: inline; margin: 0; color: var(--muted)">{{p.meaning}}</dd></div>
+</sc-for>
+<div><dt style="display: inline; font-weight: 600">Devoluciones: </dt><dd style="display: inline; margin: 0; color: var(--muted)">si se desactiva, un pedido nunca es menor que cero, como en la práctica.</dd></div>
+</dl>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Efectos que vas a observar</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>La amplificación se multiplica en cada eslabón: la fábrica ve la demanda más distorsionada.</li>
+<li>Tiempos de entrega más largos (L) empeoran mucho el efecto.</li>
+<li>Pronosticar con más historia (p mayor) suaviza los pedidos.</li>
+<li>Con L = 0 no hay amplificación: el problema nace del retraso.</li>
+</ul>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Utilidad en los negocios</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>Justificar compartir datos de punto de venta con proveedores (VMI, CPFR).</li>
+<li>Reducir tiempos de entrega y evitar promociones que inflan pedidos.</li>
+<li>Explicar por qué la capacidad de la fábrica oscila aunque el mercado sea estable.</li>
+</ul>
+</article>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'reset', t: 0, seed: 7, mu: 100, sd: 20, L: 2, p: 4, neg: true };
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  run() {
+    var self = this;
+    clearInterval(this.iv);
+    this.iv = setInterval(function () {
+      var t = self.state.t + 1;
+      if (t >= 104) { clearInterval(self.iv); self.setState({ t: 104, mode: 'done' }); }
+      else self.setState({ t: t });
+    }, 140);
+  }
+  renderVals() {
+    var self = this, s = this.state, T = 104, W = 40;
+    var nav = [['Oferta y demanda', 'Oferta-demanda.dc.html'], ['Interés compuesto', 'Interes-compuesto.dc.html'], ['EOQ', 'EOQ.dc.html'], ['Punto de reorden', 'Punto-reorden.dc.html'], ['Revisión', 'Revision.dc.html'], ['Efecto látigo', 'Bullwhip.dc.html'], ['Beer Game', 'Beer-game.dc.html'], ['Colas', 'Colas.dc.html']]
+      .map(function (n, i) { var cur = i === 5; return { label: n[0], href: n[1], current: cur ? 'page' : 'false', fg: cur ? '#1D5BD8' : '#12151B', bg: cur ? '#E6EEFC' : 'transparent', weight: cur ? 600 : 500 }; });
+    var defs = [
+      { key: 'mu', label: 'Demanda media (μ)', min: 50, max: 200, step: 5, unit: 'u/sem', def: '100', meaning: 'compras promedio del consumidor final por semana.' },
+      { key: 'sd', label: 'Variabilidad de la demanda (σ)', min: 0, max: 40, step: 1, unit: 'u/sem', def: '20', meaning: 'desviación estándar de la demanda semanal del consumidor.' },
+      { key: 'L', label: 'Tiempo de entrega (L)', min: 0, max: 8, step: 1, unit: 'semanas', def: '2', meaning: 'semanas que tarda en llegar lo que pide cada eslabón.' },
+      { key: 'p', label: 'Semanas del pronóstico (p)', min: 1, max: 20, step: 1, unit: 'semanas', def: '4', meaning: 'cuántas semanas promedia cada eslabón para pronosticar.' }
+    ];
+    var params = defs.map(function (d) {
+      var v = s[d.key];
+      return { id: 'bw-' + d.key, hid: 'bw-' + d.key + '-h', label: d.label, min: d.min, max: d.max, step: d.step, value: v, meaning: d.meaning,
+        shown: v + ' ' + d.unit, hint: 'Rango ' + d.min + '–' + d.max + ' · por defecto ' + d.def,
+        onChange: function (e) { var o = {}; o[d.key] = parseFloat(e.target.value); self.setState(o); } };
+    });
+    var a = s.seed >>> 0;
+    var rng = function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    var N = W + T, D = [];
+    for (var i = 0; i < N; i++) { var u1 = Math.max(rng(), 1e-12), u2 = rng(); D.push(s.mu + s.sd * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)); }
+    var series = [D];
+    for (var k = 0; k < 4; k++) {
+      var inp = series[k], q = [];
+      for (var t = 0; t < N; t++) { var v = t < s.p ? inp[t] : inp[t] + (s.L / s.p) * (inp[t] - inp[t - s.p]); q.push(s.neg ? v : Math.max(0, v)); }
+      series.push(q);
+    }
+    var variance = function (arr) { if (arr.length < 2) return 0; var m = arr.reduce(function (x, y) { return x + y; }, 0) / arr.length; return arr.reduce(function (x, y) { return x + (y - m) * (y - m); }, 0) / (arr.length - 1); };
+    var upto = W + Math.max(s.t, 2);
+    var vD = variance(D.slice(W, upto)) || 1;
+    var ratios = series.map(function (sr) { return variance(sr.slice(W, upto)) / vD; });
+    var th = 1 + 2 * s.L / s.p + 2 * s.L * s.L / (s.p * s.p);
+    var names = ['Consumidor', 'Minorista', 'Mayorista', 'Distribuidor', 'Fábrica'];
+    var colors = ['#4F5866', '#1D5BD8', '#0F7C80', '#B4500B', '#6B3FC4'];
+    var rMax = Math.max.apply(null, ratios.concat([1]));
+    var bars = ratios.map(function (r, j) { return { name: names[j], v: s.t >= 2 ? r.toFixed(2) + '×' : '—', w: (s.t >= 2 ? Math.max(1, r / rMax * 100) : 0).toFixed(1) + '%', color: colors[j] }; });
+    var shown = series.map(function (sr) { return sr.slice(W, W + s.t); });
+    var all = [].concat.apply([], series.map(function (sr) { return sr.slice(W); }));
+    var lo = Math.min(0, Math.min.apply(null, all)), hi = Math.max.apply(null, all);
+    var sx = function (t) { return 56 + t / T * 644; };
+    var sy = function (v) { return 280 - (v - lo) / (hi - lo || 1) * 260; };
+    var pl = function (arr) { return arr.map(function (v, t) { return sx(t + 1).toFixed(1) + ',' + sy(v).toFixed(1); }).join(' '); };
+    var modes = { reset: ['Reiniciada', '#EEF1F5', '#4F5866'], running: ['En curso', '#E3F3EA', '#1A7A4C'], paused: ['En pausa', '#FCEEE3', '#9A4409'], done: ['Terminada', '#E6EEFC', '#1D5BD8'] };
+    var md = modes[s.mode];
+    return {
+      nav: nav, params: params, t: s.t, T: T, seed: s.seed, neg: s.neg,
+      toggleNeg: function (e) { self.setState({ neg: e.target.checked }); },
+      st: { label: md[0], bg: md[1], fg: md[2] },
+      playLabel: s.mode === 'running' ? 'Pausar' : (s.mode === 'done' ? 'Repetir' : (s.t > 0 ? 'Continuar' : 'Iniciar')),
+      toggle: function () {
+        if (s.mode === 'running') { clearInterval(self.iv); self.setState({ mode: 'paused' }); }
+        else { if (s.mode === 'done') self.setState({ t: 0 }); self.setState({ mode: 'running' }); self.run(); }
+      },
+      step: function () { clearInterval(self.iv); self.setState({ t: Math.min(T, s.t + 1), mode: s.t + 1 >= T ? 'done' : 'paused' }); },
+      reset: function () { clearInterval(self.iv); self.setState({ t: 0, mode: 'reset' }); },
+      setSeed: function (e) { var v = parseInt(e.target.value, 10); if (v >= 1) { clearInterval(self.iv); self.setState({ seed: v, t: 0, mode: 'reset' }); } },
+      theory: th.toFixed(2) + '×', theory4: Math.pow(th, 4).toFixed(1) + '×',
+      bars: bars,
+      ax: { y0: Math.round(lo), mu: s.mu, y4: Math.round(hi) },
+      muY: sy(s.mu).toFixed(1), muLabelY: (sy(s.mu) + 4).toFixed(1),
+      l: { s0: pl(shown[0]), s1: pl(shown[1]), s2: pl(shown[2]), s3: pl(shown[3]), s4: pl(shown[4]) },
+      alt: s.t < 2 ? 'Inicia la simulación para ver los pedidos de cada eslabón.' : 'Tras ' + s.t + ' semanas, la varianza de los pedidos crece de 1× en el consumidor a ' + ratios[1].toFixed(2) + '× en el minorista, ' + ratios[2].toFixed(2) + '× en el mayorista, ' + ratios[3].toFixed(2) + '× en el distribuidor y ' + ratios[4].toFixed(2) + '× en la fábrica.'
+    };
+  }
+}
+</script>
+</body>
+</html>

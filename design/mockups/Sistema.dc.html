@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SimEco · Sistema visual</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+input[type=range]{width:100%;margin:0;height:28px;accent-color:#1D5BD8}
+</style>
+</helmet>
+<div style="width: 1440px; height: 1480px; box-sizing: border-box; padding: 56px 64px; background: #F6F7F9; color: #12151B; font-family: 'Inter', system-ui, sans-serif; display: flex; flex-direction: column; gap: 40px">
+<div style="display: flex; justify-content: space-between; align-items: flex-end; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<p style="margin: 0; font-size: 14px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #1D5BD8">Handoff</p>
+<h1 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 48px; line-height: 1.05">Tokens, breakpoints y estados de la interfaz</h1>
+</div>
+<p style="margin: 0; max-width: 420px; font-size: 15px; color: #4F5866">Todo valor de esta hoja vive como variable CSS en <code>css/tokens.css</code>. Los contrastes indicados son contra #FFFFFF.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px">
+<section style="background: #FFFFFF; border: 1px solid #DCE1E8; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px">Color</h2>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{colors}}" as="c" hint-placeholder-count="10">
+<div style="display: flex; align-items: center; gap: 12px">
+<span style="width: 44px; height: 44px; border-radius: 10px; background: {{c.hex}}; border: 1px solid #DCE1E8; flex-shrink: 0"></span>
+<div style="display: flex; flex-direction: column; min-width: 0">
+<span style="font-family: ui-monospace, monospace; font-size: 13px; font-weight: 600">{{c.name}}</span>
+<span style="font-size: 12px; color: #4F5866">{{c.hex}} · {{c.use}}</span>
+</div>
+</div>
+</sc-for>
+</div>
+<h3 style="margin: 8px 0 0; font-size: 15px">Series de gráficas (en este orden)</h3>
+<div style="display: flex; gap: 8px">
+<sc-for list="{{series}}" as="s" hint-placeholder-count="5">
+<div style="flex: 1 1 0; display: flex; flex-direction: column; gap: 6px"><span style="height: 28px; border-radius: 6px; background: {{s.hex}}"></span><span style="font-size: 12px; color: #4F5866">{{s.name}} {{s.hex}}</span></div>
+</sc-for>
+</div>
+<p style="margin: 0; font-size: 13px; color: #4F5866">Las series también se distinguen por trazo (continuo, discontinuo, punteado) para no depender solo del color.</p>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #DCE1E8; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 16px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px">Tipografía y espacio</h2>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 150px; font-family: ui-monospace, monospace; font-size: 12px; color: #4F5866">--fs-display</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 44px; font-weight: 700; line-height: 1.1">Oferta y demanda</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 150px; font-family: ui-monospace, monospace; font-size: 12px; color: #4F5866">--fs-h2 26</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600">Entender la simulación</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 150px; font-family: ui-monospace, monospace; font-size: 12px; color: #4F5866">--fs-kpi 24</span><span style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums">$489.90</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 150px; font-family: ui-monospace, monospace; font-size: 12px; color: #4F5866">--fs-body 16</span><span style="font-size: 16px">Texto de párrafo, etiquetas de deslizadores.</span></div>
+<div style="display: flex; align-items: baseline; gap: 16px"><span style="width: 150px; font-family: ui-monospace, monospace; font-size: 12px; color: #4F5866">--fs-small 13</span><span style="font-size: 13px; color: #4F5866">Rango 100–10 000 · por defecto 1 200</span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; border-top: 1px solid #EEF1F5; padding-top: 16px; font-size: 14px">
+<div style="display: flex; flex-direction: column; gap: 6px"><strong>Espaciado</strong><span style="color: #4F5866; font-family: ui-monospace, monospace; font-size: 13px">--sp-1 4 · --sp-2 8 · --sp-3 12 · --sp-4 16 · --sp-5 24 · --sp-6 32 · --sp-7 48</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><strong>Radios y toques</strong><span style="color: #4F5866; font-family: ui-monospace, monospace; font-size: 13px">--r-sm 8 · --r-md 12 · --r-lg 14 · --r-pill 999 · objetivo táctil mínimo 44 px</span></div>
+</div>
+</section>
+</div>
+
+<section style="background: #FFFFFF; border: 1px solid #DCE1E8; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px">Breakpoints</h2>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 170px; display: flex; align-items: flex-end; justify-content: center; background: #EEF1F5; border-radius: 12px; padding: 14px">
+<div style="width: 80px; height: 150px; background: #FFFFFF; border: 2px solid #9AA3AF; border-radius: 10px; padding: 6px; box-sizing: border-box; display: flex; flex-direction: column; gap: 4px"><span style="height: 8px; background: #1D5BD8; border-radius: 2px"></span><span style="height: 16px; background: #DCE1E8; border-radius: 2px"></span><span style="height: 40px; background: #E6EEFC; border-radius: 2px"></span><span style="height: 30px; background: #DCE1E8; border-radius: 2px"></span><span style="height: 20px; background: #DCE1E8; border-radius: 2px"></span></div>
+</div>
+<strong>Móvil · &lt; 640 px</strong>
+<span style="font-size: 14px; color: #4F5866">Una columna. Navegación con selector. Indicadores en 2 columnas. Parámetros y explicación en acordeones. Margen lateral 16 px.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 170px; display: flex; align-items: flex-end; justify-content: center; background: #EEF1F5; border-radius: 12px; padding: 14px">
+<div style="width: 150px; height: 150px; background: #FFFFFF; border: 2px solid #9AA3AF; border-radius: 10px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; gap: 5px"><span style="height: 8px; background: #1D5BD8; border-radius: 2px"></span><span style="height: 12px; background: #DCE1E8; border-radius: 2px"></span><div style="display: flex; gap: 5px; flex-grow: 1"><span style="flex: 1; background: #DCE1E8; border-radius: 2px"></span><span style="flex: 1.6; background: #E6EEFC; border-radius: 2px"></span></div></div>
+</div>
+<strong>Tableta · 640–1023 px</strong>
+<span style="font-size: 14px; color: #4F5866">Parámetros arriba en 2 columnas y resultados debajo, o lado a lado desde 900 px. Navegación horizontal con desplazamiento. Margen 24 px.</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="height: 170px; display: flex; align-items: flex-end; justify-content: center; background: #EEF1F5; border-radius: 12px; padding: 14px">
+<div style="width: 260px; height: 140px; background: #FFFFFF; border: 2px solid #9AA3AF; border-radius: 10px; padding: 8px; box-sizing: border-box; display: flex; flex-direction: column; gap: 5px"><span style="height: 8px; background: #1D5BD8; border-radius: 2px"></span><span style="height: 10px; background: #DCE1E8; border-radius: 2px"></span><div style="display: flex; gap: 6px; flex-grow: 1"><span style="flex: 1; background: #DCE1E8; border-radius: 2px"></span><span style="flex: 2.6; background: #E6EEFC; border-radius: 2px"></span></div></div>
+</div>
+<strong>Escritorio · ≥ 1024 px</strong>
+<span style="font-size: 14px; color: #4F5866">Panel de parámetros (300–360 px) a la izquierda y resultados a la derecha. Contenedor máximo de 1280 px. Explicación en 4 tarjetas.</span>
+</div>
+</div>
+</section>
+
+<section style="background: #FFFFFF; border: 1px solid #DCE1E8; border-radius: 16px; padding: 28px; display: flex; flex-direction: column; gap: 18px">
+<h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 22px">Estados de la simulación</h2>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px">
+<sc-for list="{{states}}" as="s" hint-placeholder-count="4">
+<div style="border: 1px solid #DCE1E8; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<span style="align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: {{s.bg}}; color: {{s.fg}}"><span style="width: 8px; height: 8px; border-radius: 50%; background: {{s.fg}}"></span>{{s.label}}</span>
+<div style="display: flex; gap: 8px">
+<span style="min-height: 40px; padding: 0 14px; border-radius: 10px; background: #1D5BD8; color: #FFFFFF; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center">{{s.primary}}</span>
+<span style="min-height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid #DCE1E8; font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; color: {{s.resetFg}}">Reiniciar</span>
+</div>
+<span style="font-size: 13px; color: #4F5866">{{s.rule}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1480}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      colors: [
+        { name: '--bg', hex: '#F6F7F9', use: 'fondo de página' },
+        { name: '--surface', hex: '#FFFFFF', use: 'tarjetas' },
+        { name: '--surface-2', hex: '#EEF1F5', use: 'rieles, fórmulas' },
+        { name: '--line', hex: '#DCE1E8', use: 'bordes' },
+        { name: '--ink', hex: '#12151B', use: 'texto, 18.3:1' },
+        { name: '--muted', hex: '#4F5866', use: 'texto secundario, 7.2:1' },
+        { name: '--accent', hex: '#1D5BD8', use: 'acción, enlaces, 5.9:1' },
+        { name: '--accent-2', hex: '#B4500B', use: 'serie 2, 5.1:1' },
+        { name: '--ok', hex: '#1A7A4C', use: 'en curso, óptimo, 5.3:1' },
+        { name: '--danger', hex: '#B3261E', use: 'faltante, inestable, 6.5:1' }
+      ],
+      series: [
+        { name: '1', hex: '#1D5BD8' }, { name: '2', hex: '#B4500B' }, { name: '3', hex: '#0F7C80' }, { name: '4', hex: '#6B3FC4' }, { name: 'ref.', hex: '#4F5866' }
+      ],
+      states: [
+        { label: 'Reiniciada', bg: '#EEF1F5', fg: '#4F5866', primary: 'Iniciar', resetFg: '#9AA3AF', rule: 't = 0, sin datos en las series; KPIs analíticos visibles; Reiniciar desactivado.' },
+        { label: 'En curso', bg: '#E3F3EA', fg: '#1A7A4C', primary: 'Pausar', resetFg: '#12151B', rule: 'El reloj avanza; deslizadores activos y recalculan en vivo; aria-live anuncia solo cambios de estado.' },
+        { label: 'En pausa', bg: '#FCEEE3', fg: '#9A4409', primary: 'Continuar', resetFg: '#12151B', rule: 'Reloj detenido; «Paso +1» avanza un periodo; tabla de datos disponible.' },
+        { label: 'Terminada', bg: '#E6EEFC', fg: '#1D5BD8', primary: 'Repetir', resetFg: '#12151B', rule: 'Llegó al horizonte; «Repetir» vuelve a t = 0 y corre de nuevo con los mismos parámetros.' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>

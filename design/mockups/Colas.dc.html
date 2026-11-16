@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SimEco · Teoría de colas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F7F9;--surface:#FFFFFF;--surface-2:#EEF1F5;--ink:#12151B;--muted:#4F5866;--line:#DCE1E8;--accent:#1D5BD8;--accent-soft:#E6EEFC;--accent-2:#B4500B;--accent-2-soft:#FCEEE3;--ok:#1A7A4C;--font-head:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif}
+body{margin:0;background:var(--bg)}
+a{color:var(--accent)}a:hover{color:#163F99}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;margin:0;height:28px;accent-color:#1D5BD8}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5">
+<header style="background: var(--surface); border-bottom: 1px solid var(--line)">
+<div style="max-width: 1280px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); min-height: 44px">
+<svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1D5BD8"></rect><path d="M7 21 L13 14 L18 18 L25 9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-family: var(--font-head); font-weight: 700; font-size: 19px">SimEco</span>
+</a>
+<nav aria-label="Simulaciones" style="flex: 1 1 400px; min-width: 0; overflow-x: auto">
+<div style="display: flex; gap: 4px; white-space: nowrap; font-size: 14px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="8">
+<a href="{{n.href}}" aria-current="{{n.current}}" style="padding: 10px 12px; border-radius: 8px; text-decoration: none; color: {{n.fg}}; background: {{n.bg}}; font-weight: {{n.weight}}">{{n.label}}</a>
+</sc-for>
+</div>
+</nav>
+</div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 28px 24px 72px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 14px; color: var(--muted)"><a href="Main.dc.html">Inicio</a> / Servicios</p>
+<h1 style="margin: 0; font-family: var(--font-head); font-size: clamp(30px, 4vw, 44px); line-height: 1.1">Teoría de colas y cuellos de botella</h1>
+<p style="margin: 0; font-size: 18px; color: var(--muted); max-width: 780px">Clientes que llegan al azar a un mostrador con uno o varios servidores. Compara las fórmulas del modelo M/M/c con una jornada simulada de 8 horas y encuentra la estación que limita todo el flujo de servicio.</p>
+</div>
+
+<section aria-label="Control de la simulación" style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<span role="status" aria-live="polite" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: {{st.bg}}; color: {{st.fg}}"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: {{st.fg}}"></span>{{st.label}}</span>
+<span style="font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums">Reloj {{clock}} de 8:00 h</span>
+<div style="flex-grow: 1"></div>
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted)">Semilla
+<input type="number" min="1" max="9999" value="{{seed}}" onChange="{{setSeed}}" style="width: 88px; min-height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); font: 15px var(--font-body); color: var(--ink)">
+</label>
+<button type="button" onClick="{{toggle}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 600 15px var(--font-body); cursor: pointer">{{playLabel}}</button>
+<button type="button" onClick="{{step}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">+10 min</button>
+<button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">Reiniciar</button>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<aside aria-labelledby="par-h" style="flex: 1 1 300px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+<h2 id="par-h" style="margin: 0; font-family: var(--font-head); font-size: 20px">Parámetros</h2>
+<sc-for list="{{params}}" as="p" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 15px">
+<label for="{{p.id}}" style="font-weight: 600">{{p.label}}</label>
+<output for="{{p.id}}" style="font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600">{{p.shown}}</output>
+</div>
+<input id="{{p.id}}" type="range" min="{{p.min}}" max="{{p.max}}" step="{{p.step}}" value="{{p.value}}" onChange="{{p.onChange}}" aria-describedby="{{p.hid}}" aria-valuetext="{{p.shown}}">
+<span id="{{p.hid}}" style="font-size: 13px; color: var(--muted)">{{p.hint}}</span>
+</div>
+</sc-for>
+</aside>
+
+<section aria-label="Resultados" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<sc-if value="{{unstable}}" hint-placeholder-val="{{false}}">
+<p role="alert" style="margin: 0; padding: 12px 16px; border-radius: 12px; background: #FDECEA; color: #8C1D18; font-weight: 600">Sistema inestable: llegan más clientes de los que se pueden atender (ρ ≥ 1). La cola crece sin límite.</p>
+</sc-if>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 4px; overflow-x: auto">
+<table style="border-collapse: collapse; width: 100%; min-width: 460px; font-variant-numeric: tabular-nums; font-size: 15px">
+<caption style="text-align: left; padding: 10px 16px; font-family: var(--font-head); font-size: 18px; font-weight: 600">Modelo {{model}}: teoría vs. jornada simulada</caption>
+<thead><tr><th scope="col" style="text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 500">Indicador</th><th scope="col" style="text-align: right; padding: 10px 16px; border-bottom: 1px solid var(--line)">Fórmula</th><th scope="col" style="text-align: right; padding: 10px 16px; border-bottom: 1px solid var(--line)">Simulado</th></tr></thead>
+<tbody>
+<sc-for list="{{cmp}}" as="r" hint-placeholder-count="6">
+<tr><th scope="row" style="text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--surface-2); font-weight: 500">{{r.k}}</th><td style="padding: 10px 16px; text-align: right; border-bottom: 1px solid var(--surface-2); font-weight: 600">{{r.th}}</td><td style="padding: 10px 16px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.sim}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">El mostrador ahora</figcaption>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 20px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; color: var(--muted)">En fila ({{nowQ}})</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; max-width: 420px; min-height: 28px">
+<sc-for list="{{queueDots}}" as="q" hint-placeholder-count="3"><span aria-hidden="true" style="width: 22px; height: 22px; border-radius: 50%; background: #B4500B"></span></sc-for>
+</div>
+</div>
+<svg width="28" height="16" viewBox="0 0 28 16" aria-hidden="true"><path d="M2 8 H24 M18 2 L24 8 L18 14" fill="none" stroke="#9AA3AF" stroke-width="2"></path></svg>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; color: var(--muted)">Servidores ({{busy}} ocupados de {{c}})</span>
+<div style="display: flex; gap: 8px">
+<sc-for list="{{servers}}" as="sv" hint-placeholder-count="2"><span style="width: 40px; height: 40px; border-radius: 10px; border: 2px solid #1D5BD8; background: {{sv.bg}}; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: {{sv.fg}}">{{sv.label}}</span></sc-for>
+</div>
+</div>
+</div>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">{{nowAlt}}</p>
+</figure>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Clientes en el sistema durante la jornada</figcaption>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #1D5BD8"></span>Simulado</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 0; border-top: 3px dashed #B4500B"></span>L teórico</span>
+</div>
+</div>
+<svg viewBox="0 0 720 240" style="width: 100%; height: auto; display: block" role="img" aria-label="{{alt}}">
+<line x1="56" y1="210" x2="700" y2="210" stroke="#9AA3AF"></line>
+<line x1="56" y1="20" x2="56" y2="210" stroke="#9AA3AF"></line>
+<text x="50" y="214" text-anchor="end" font-size="12" fill="#4F5866">0</text>
+<text x="50" y="24" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y4}}</text>
+<text x="56" y="228" text-anchor="middle" font-size="12" fill="#4F5866">0 h</text>
+<text x="378" y="228" text-anchor="middle" font-size="12" fill="#4F5866">4 h</text>
+<text x="700" y="228" text-anchor="middle" font-size="12" fill="#4F5866">8 h</text>
+<line x1="56" y1="{{lY}}" x2="700" y2="{{lY}}" stroke="#B4500B" stroke-width="2" stroke-dasharray="8 6"></line>
+<polyline points="{{nline}}" fill="none" stroke="#1D5BD8" stroke-width="2" stroke-linejoin="round"></polyline>
+</svg>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">{{alt}}</p>
+</figure>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Línea de servicio: ¿dónde está el cuello de botella?</figcaption>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">Cada cliente pasa por cuatro estaciones. La utilización es λ ÷ capacidad. La estación más cargada limita el flujo: {{throughput}}.</p>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{stations}}" as="b" hint-placeholder-count="4">
+<div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap">
+<span style="width: 160px; font-size: 15px; font-weight: {{b.weight}}">{{b.name}}</span>
+<div style="flex: 1 1 200px; height: 22px; background: var(--surface-2); border-radius: 6px; overflow: hidden"><div style="height: 100%; width: {{b.w}}; background: {{b.color}}; border-radius: 6px"></div></div>
+<span style="width: 150px; text-align: right; font-size: 14px; font-variant-numeric: tabular-nums">{{b.v}}</span>
+</div>
+</sc-for>
+</div>
+</figure>
+</section>
+</div>
+
+<section aria-labelledby="exp-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="exp-h" style="margin: 0; font-family: var(--font-head); font-size: 26px">Entender la simulación</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué simula</h3>
+<p style="margin: 0; color: var(--muted); font-size: 15px">Llegadas de Poisson (tiempos entre llegadas exponenciales) y tiempos de servicio exponenciales, una sola fila y c servidores en orden de llegada. La simulación genera una jornada concreta; las fórmulas dan el promedio a largo plazo.</p>
+<p style="margin: 0; font-size: 14px; font-family: ui-monospace, monospace; background: var(--surface-2); padding: 10px 12px; border-radius: 8px">ρ = λ / (c·μ)<br>M/M/1: L = ρ/(1 − ρ), W = 1/(μ − λ)<br>Lq = λ·Wq, L = Lq + λ/μ (Little)</p>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué significa cada parámetro</h3>
+<dl style="margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
+<sc-for list="{{params}}" as="p" hint-placeholder-count="5">
+<div><dt style="display: inline; font-weight: 600">{{p.label}}: </dt><dd style="display: inline; margin: 0; color: var(--muted)">{{p.meaning}}</dd></div>
+</sc-for>
+</dl>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Efectos que vas a observar</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>La espera no crece en línea recta: de 80 % a 90 % de utilización, la fila promedio se duplica.</li>
+<li>Juntar dos servidores en una sola fila espera menos que dos filas separadas.</li>
+<li>Mejorar una estación que no es el cuello de botella no aumenta el flujo.</li>
+<li>Una jornada simulada puede alejarse bastante del promedio teórico.</li>
+</ul>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Utilidad en los negocios</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>Dimensionar cajas, ventanillas, centros de llamadas o muelles de carga.</li>
+<li>Equilibrar el costo de un servidor más contra el costo de la espera del cliente.</li>
+<li>Priorizar inversiones en la restricción del proceso (teoría de restricciones).</li>
+</ul>
+</article>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'reset', t: 0, seed: 3, lam: 4, mu: 5, c: 1, pay: 8, deliv: 10 };
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  run() {
+    var self = this;
+    clearInterval(this.iv);
+    this.iv = setInterval(function () {
+      var t = self.state.t + 2;
+      if (t >= 480) { clearInterval(self.iv); self.setState({ t: 480, mode: 'done' }); }
+      else self.setState({ t: t });
+    }, 60);
+  }
+  renderVals() {
+    var self = this, s = this.state, H = 480;
+    var nav = [['Oferta y demanda', 'Oferta-demanda.dc.html'], ['Interés compuesto', 'Interes-compuesto.dc.html'], ['EOQ', 'EOQ.dc.html'], ['Punto de reorden', 'Punto-reorden.dc.html'], ['Revisión', 'Revision.dc.html'], ['Efecto látigo', 'Bullwhip.dc.html'], ['Beer Game', 'Beer-game.dc.html'], ['Colas', 'Colas.dc.html']]
+      .map(function (n, i) { var cur = i === 7; return { label: n[0], href: n[1], current: cur ? 'page' : 'false', fg: cur ? '#1D5BD8' : '#12151B', bg: cur ? '#E6EEFC' : 'transparent', weight: cur ? 600 : 500 }; });
+    var defs = [
+      { key: 'lam', label: 'Tasa de llegada (λ)', min: 0.5, max: 20, step: 0.5, unit: 'clientes/h', def: '4', meaning: 'clientes que llegan en promedio por hora.' },
+      { key: 'mu', label: 'Tasa de servicio (μ)', min: 0.5, max: 20, step: 0.5, unit: 'clientes/h', def: '5', meaning: 'clientes que atiende un servidor por hora; 1/μ es el tiempo medio de atención.' },
+      { key: 'c', label: 'Servidores (c)', min: 1, max: 6, step: 1, unit: '', def: '1', meaning: 'número de cajeros, ventanillas o agentes que atienden una sola fila.' },
+      { key: 'pay', label: 'Capacidad de pago', min: 1, max: 20, step: 0.5, unit: 'clientes/h', def: '8', meaning: 'clientes por hora que procesa la estación de pago.' },
+      { key: 'deliv', label: 'Capacidad de entrega', min: 1, max: 20, step: 0.5, unit: 'clientes/h', def: '10', meaning: 'clientes por hora que procesa la estación de entrega.' }
+    ];
+    var params = defs.map(function (d) {
+      var v = s[d.key];
+      return { id: 'q-' + d.key, hid: 'q-' + d.key + '-h', label: d.label, min: d.min, max: d.max, step: d.step, value: v, meaning: d.meaning,
+        shown: (v + ' ' + d.unit).trim(), hint: 'Rango ' + d.min + '–' + d.max + ' · por defecto ' + d.def,
+        onChange: function (e) { var o = {}; o[d.key] = parseFloat(e.target.value); self.setState(o); } };
+    });
+    var lam = s.lam, mu = s.mu, c = s.c, rho = lam / (c * mu), A = lam / mu;
+    var stable = rho < 1, th = null;
+    if (stable) {
+      var sum = 0, f = 1;
+      for (var n = 0; n < c; n++) { if (n > 0) f *= n; sum += Math.pow(A, n) / f; }
+      var fc = f * (c > 1 ? c : 1); if (c === 1) fc = 1;
+      var cf = 1; for (var k = 2; k <= c; k++) cf *= k;
+      var top = Math.pow(A, c) / (cf * (1 - rho));
+      var P0 = 1 / (sum + top);
+      var Pw = top * P0;
+      var Lq = P0 * Math.pow(A, c) * rho / (cf * (1 - rho) * (1 - rho));
+      var Wq = Lq / lam, W = Wq + 1 / mu, L = lam * W;
+      th = { P0: P0, Pw: Pw, Lq: Lq, Wq: Wq, W: W, L: L };
+    }
+    var a = s.seed >>> 0;
+    var rng = function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    var expo = function (rate) { return -Math.log(1 - rng()) / rate * 60; };
+    var cust = [], free = []; for (var i = 0; i < c; i++) free.push(0);
+    var tArr = expo(lam);
+    while (tArr < H && cust.length < 5000) {
+      var svc = expo(mu);
+      var j = 0; for (i = 1; i < c; i++) if (free[i] < free[j]) j = i;
+      var start = Math.max(tArr, free[j]), end = start + svc; free[j] = end;
+      cust.push({ arr: tArr, start: start, end: end, srv: j });
+      tArr += expo(lam);
+    }
+    var now = s.t;
+    var inSys = function (x) { var q = 0, b = 0; for (var k2 = 0; k2 < cust.length; k2++) { var cu = cust[k2]; if (cu.arr <= x && cu.end > x) { if (cu.start <= x) b++; else q++; } } return { q: q, b: b }; };
+    var samples = []; for (var m = 0; m <= now; m += 2) { var v = inSys(m); samples.push(v.q + v.b); }
+    var area = samples.reduce(function (x, y) { return x + y; }, 0);
+    var Lsim = samples.length ? area / samples.length : 0;
+    var started = cust.filter(function (cu) { return cu.start <= now; });
+    var Wqsim = started.length ? started.reduce(function (x, cu) { return x + (cu.start - cu.arr); }, 0) / started.length : 0;
+    var done = cust.filter(function (cu) { return cu.end <= now; });
+    var Wsim = done.length ? done.reduce(function (x, cu) { return x + (cu.end - cu.arr); }, 0) / done.length : 0;
+    var waited = started.filter(function (cu) { return cu.start - cu.arr > 0.01; }).length;
+    var busyTime = cust.reduce(function (x, cu) { return x + Math.max(0, Math.min(cu.end, now) - Math.min(cu.start, now)); }, 0);
+    var util = now > 0 ? busyTime / (c * now) : 0;
+    var snap = inSys(now);
+    var yMax = Math.max(6, Math.max.apply(null, samples.concat([th ? th.L * 2 : 0]))) * 1.1;
+    var sx = function (x) { return 56 + x / H * 644; };
+    var sy = function (v2) { return 210 - v2 / yMax * 190; };
+    var nline = samples.map(function (v2, idx) { return sx(idx * 2).toFixed(1) + ',' + sy(v2).toFixed(1); }).join(' ');
+    var f2 = function (v2) { return v2.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    var min = function (h) { return f2(h * 60) + ' min'; };
+    var dash = '—';
+    var caps = [['Recepción', 12], ['Atención (c·μ)', c * mu], ['Pago', s.pay], ['Entrega', s.deliv]];
+    var worst = 0; caps.forEach(function (cp, idx) { if (lam / cp[1] > lam / caps[worst][1]) worst = idx; });
+    var flow = Math.min(lam, caps[worst][1]);
+    var stations = caps.map(function (cp, idx) { var u = lam / cp[1]; return { name: cp[0] + (idx === worst ? ' · cuello' : ''), weight: idx === worst ? 700 : 500, w: Math.min(100, u * 100).toFixed(1) + '%', color: u >= 1 ? '#B3261E' : (idx === worst ? '#B4500B' : '#1D5BD8'), v: f2(u * 100) + ' % · ' + cp[1] + '/h' }; });
+    var servers = []; for (i = 0; i < c; i++) { var bz = i < snap.b; servers.push({ bg: bz ? '#1D5BD8' : '#FFFFFF', fg: bz ? '#FFFFFF' : '#1D5BD8', label: bz ? 'ocup.' : 'libre' }); }
+    var queueDots = []; for (i = 0; i < Math.min(snap.q, 40); i++) queueDots.push({ i: i });
+    var hh = Math.floor(now / 60), mm = Math.round(now % 60);
+    var modes = { reset: ['Reiniciada', '#EEF1F5', '#4F5866'], running: ['En curso', '#E3F3EA', '#1A7A4C'], paused: ['En pausa', '#FCEEE3', '#9A4409'], done: ['Terminada', '#E6EEFC', '#1D5BD8'] };
+    var md = modes[s.mode];
+    return {
+      nav: nav, params: params, seed: s.seed, c: c, busy: snap.b, nowQ: snap.q,
+      clock: hh + ':' + (mm < 10 ? '0' : '') + mm + ' h',
+      model: c === 1 ? 'M/M/1' : 'M/M/' + c, unstable: !stable,
+      st: { label: md[0], bg: md[1], fg: md[2] },
+      playLabel: s.mode === 'running' ? 'Pausar' : (s.mode === 'done' ? 'Repetir' : (s.t > 0 ? 'Continuar' : 'Iniciar')),
+      toggle: function () {
+        if (s.mode === 'running') { clearInterval(self.iv); self.setState({ mode: 'paused' }); }
+        else { if (s.mode === 'done') self.setState({ t: 0 }); self.setState({ mode: 'running' }); self.run(); }
+      },
+      step: function () { clearInterval(self.iv); var t = Math.min(H, s.t + 10); self.setState({ t: t, mode: t >= H ? 'done' : 'paused' }); },
+      reset: function () { clearInterval(self.iv); self.setState({ t: 0, mode: 'reset' }); },
+      setSeed: function (e) { var v2 = parseInt(e.target.value, 10); if (v2 >= 1) { clearInterval(self.iv); self.setState({ seed: v2, t: 0, mode: 'reset' }); } },
+      cmp: [
+        { k: 'Utilización ρ', th: f2(rho), sim: now ? f2(util) : dash },
+        { k: 'Clientes en el sistema L', th: th ? f2(th.L) : '∞', sim: now ? f2(Lsim) : dash },
+        { k: 'Clientes en fila Lq', th: th ? f2(th.Lq) : '∞', sim: dash },
+        { k: 'Tiempo en el sistema W', th: th ? min(th.W) : '∞', sim: done.length ? f2(Wsim) + ' min' : dash },
+        { k: 'Espera en fila Wq', th: th ? min(th.Wq) : '∞', sim: started.length ? f2(Wqsim) + ' min' : dash },
+        { k: 'Probabilidad de esperar', th: th ? f2(th.Pw * 100) + ' %' : '100 %', sim: started.length ? f2(waited / started.length * 100) + ' %' : dash }
+      ],
+      queueDots: queueDots, servers: servers,
+      nowAlt: 'A las ' + hh + ':' + (mm < 10 ? '0' : '') + mm + ' h hay ' + snap.q + ' clientes en fila y ' + snap.b + ' de ' + c + ' servidores ocupados. Han llegado ' + cust.filter(function (cu) { return cu.arr <= now; }).length + ' clientes.',
+      ax: { y4: Math.round(yMax) }, lY: th ? sy(th.L).toFixed(1) : '20', nline: nline,
+      alt: 'Clientes en el sistema minuto a minuto hasta las ' + hh + ':' + (mm < 10 ? '0' : '') + mm + ' h; promedio simulado ' + f2(Lsim) + (th ? ' contra ' + f2(th.L) + ' de la fórmula.' : '; la fórmula no tiene límite porque ρ ≥ 1.'),
+      stations: stations,
+      throughput: caps[worst][0] + ' al ' + f2(lam / caps[worst][1] * 100) + ' %, flujo máximo ' + f2(flow) + ' clientes/h'
+    };
+  }
+}
+</script>
+</body>
+</html>

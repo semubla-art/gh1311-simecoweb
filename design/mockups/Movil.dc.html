@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SimEco · EOQ en móvil</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F7F9;--surface:#FFFFFF;--surface-2:#EEF1F5;--ink:#12151B;--muted:#4F5866;--line:#DCE1E8;--accent:#1D5BD8;--accent-soft:#E6EEFC;--font-head:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif}
+body{margin:0;background:var(--bg)}
+a{color:var(--accent)}a:hover{color:#163F99}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;margin:0;height:28px;accent-color:#1D5BD8}
+</style>
+</helmet>
+<div style="width: 390px; height: 1720px; box-sizing: border-box; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; display: flex; flex-direction: column">
+<header style="background: var(--surface); border-bottom: 1px solid var(--line); padding: 8px 16px; display: flex; align-items: center; justify-content: space-between; gap: 8px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: var(--ink); min-height: 44px">
+<svg width="26" height="26" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1D5BD8"></rect><path d="M7 21 L13 14 L18 18 L25 9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-family: var(--font-head); font-weight: 700; font-size: 18px">SimEco</span>
+</a>
+<label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted)"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Ir a la simulación</span>
+<select style="min-height: 44px; max-width: 190px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 500 14px var(--font-body)">
+<option>Oferta y demanda</option><option>Interés compuesto</option><option selected="selected">EOQ</option><option>Punto de reorden</option><option>Revisión</option><option>Efecto látigo</option><option>Beer Game</option><option>Colas</option>
+</select>
+</label>
+</header>
+
+<main style="padding: 20px 16px 32px; display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<p style="margin: 0; font-size: 13px; color: var(--muted)"><a href="Main.dc.html">Inicio</a> / Inventarios</p>
+<h1 style="margin: 0; font-family: var(--font-head); font-size: 30px; line-height: 1.1">Cantidad económica de pedido</h1>
+<p style="margin: 0; font-size: 15px; color: var(--muted)">¿Cuántas unidades pedir cada vez? El EOQ equilibra el costo de pedir con el de almacenar.</p>
+</div>
+
+<section aria-label="Control de la simulación" style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: center">
+<span role="status" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 13px; font-weight: 600; background: #FCEEE3; color: #9A4409"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: #9A4409"></span>En pausa</span>
+<span style="font-size: 13px; color: var(--muted)">Día 180 de 365</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<button type="button" style="min-height: 44px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 600 15px var(--font-body)">Continuar</button>
+<button type="button" style="min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body)">+5 días</button>
+<button type="button" style="min-height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body)">Reiniciar</button>
+</div>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column"><span style="font-size: 12px; color: var(--muted)">Lote óptimo Q*</span><span style="font-family: var(--font-head); font-size: 22px; font-weight: 600">244.9 u</span></div>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column"><span style="font-size: 12px; color: var(--muted)">Pedidos por año</span><span style="font-family: var(--font-head); font-size: 22px; font-weight: 600">4.90</span></div>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column"><span style="font-size: 12px; color: var(--muted)">Costo en Q*</span><span style="font-family: var(--font-head); font-size: 22px; font-weight: 600">$489.90</span></div>
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: flex; flex-direction: column"><span style="font-size: 12px; color: var(--muted)">Costo con tu Q</span><span style="font-family: var(--font-head); font-size: 22px; font-weight: 600">$550.00</span><span style="font-size: 12px; color: var(--muted)">+12.3 %</span></div>
+</div>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 8px">
+<figcaption style="font-family: var(--font-head); font-size: 16px; font-weight: 600">Costo anual según el tamaño del pedido</figcaption>
+<svg viewBox="0 0 340 200" style="width: 100%; height: auto; display: block" role="img" aria-label="El costo total es mínimo en Q* = 244.9 unidades con 489.90 dólares al año; con 400 unidades sube a 550 dólares.">
+<line x1="34" y1="176" x2="334" y2="176" stroke="#9AA3AF"></line>
+<line x1="34" y1="10" x2="34" y2="176" stroke="#9AA3AF"></line>
+<polyline points="38,20 50,68 70,110 100,134 130,143 160,145 190,146 220,150 260,158 300,166" fill="none" stroke="#12151B" stroke-width="2.5"></polyline>
+<polyline points="38,24 50,74 70,118 100,142 130,152 160,158 190,162 220,165 260,167 300,169" fill="none" stroke="#1D5BD8" stroke-width="2"></polyline>
+<polyline points="34,176 300,148" fill="none" stroke="#B4500B" stroke-width="2"></polyline>
+<line x1="134" y1="10" x2="134" y2="176" stroke="#1A7A4C" stroke-dasharray="5 4"></line>
+<circle cx="134" cy="143" r="5" fill="#1A7A4C"></circle>
+<text x="140" y="24" font-size="12" font-weight="600" fill="#1A7A4C" font-family="Inter">Q* = 244.9</text>
+<text x="184" y="192" text-anchor="middle" font-size="11" fill="#4F5866" font-family="Inter">Tamaño del pedido Q (u)</text>
+</svg>
+<div style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; background: #12151B"></span>Total</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; background: #1D5BD8"></span>Pedir</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 14px; height: 3px; background: #B4500B"></span>Mantener</span>
+</div>
+<details style="font-size: 14px"><summary style="min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--accent)">Ver datos en tabla</summary><p style="margin: 0; color: var(--muted)">La tabla se desplaza horizontalmente dentro de este recuadro.</p></details>
+</figure>
+
+<details open="open" style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px 14px">
+<summary style="min-height: 48px; display: flex; align-items: center; font-family: var(--font-head); font-size: 18px; font-weight: 600; cursor: pointer">Parámetros</summary>
+<div style="display: flex; flex-direction: column; gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; font-size: 15px"><label for="m-d" style="font-weight: 600">Demanda anual (D)</label><output for="m-d" style="color: var(--accent); font-weight: 600">1 200 u/año</output></div>
+<input id="m-d" type="range" min="100" max="10000" step="100" value="1200" aria-describedby="m-d-h">
+<span id="m-d-h" style="font-size: 13px; color: var(--muted)">Rango 100–10 000 · por defecto 1 200</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; font-size: 15px"><label for="m-s" style="font-weight: 600">Costo por pedido (S)</label><output for="m-s" style="color: var(--accent); font-weight: 600">50 $/pedido</output></div>
+<input id="m-s" type="range" min="5" max="500" step="5" value="50" aria-describedby="m-s-h">
+<span id="m-s-h" style="font-size: 13px; color: var(--muted)">Rango 5–500 · por defecto 50</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; font-size: 15px"><label for="m-h" style="font-weight: 600">Costo de mantener (H)</label><output for="m-h" style="color: var(--accent); font-weight: 600">2 $/u·año</output></div>
+<input id="m-h" type="range" min="0.5" max="20" step="0.5" value="2" aria-describedby="m-h-h">
+<span id="m-h-h" style="font-size: 13px; color: var(--muted)">Rango 0.5–20 · por defecto 2</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; font-size: 15px"><label for="m-q" style="font-weight: 600">Tu tamaño de pedido (Q)</label><output for="m-q" style="color: var(--accent); font-weight: 600">400 u</output></div>
+<input id="m-q" type="range" min="20" max="1500" step="5" value="400" aria-describedby="m-q-h">
+<span id="m-q-h" style="font-size: 13px; color: var(--muted)">Rango 20–1 500 · por defecto 400</span>
+</div>
+</div>
+</details>
+
+<details style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px">
+<summary style="min-height: 48px; display: flex; align-items: center; font-family: var(--font-head); font-size: 18px; font-weight: 600; cursor: pointer">Qué simula</summary>
+<p style="margin: 0 0 14px; color: var(--muted); font-size: 15px">Un artículo con demanda constante. Cada pedido cuesta S y cada unidad guardada cuesta H al año.</p>
+</details>
+<details style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px">
+<summary style="min-height: 48px; display: flex; align-items: center; font-family: var(--font-head); font-size: 18px; font-weight: 600; cursor: pointer">Efectos que vas a observar</summary>
+<p style="margin: 0 0 14px; color: var(--muted); font-size: 15px">En Q* el costo de pedir iguala al de mantener; la curva es plana cerca del óptimo.</p>
+</details>
+<details style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px 14px">
+<summary style="min-height: 48px; display: flex; align-items: center; font-family: var(--font-head); font-size: 18px; font-weight: 600; cursor: pointer">Utilidad en los negocios</summary>
+<p style="margin: 0 0 14px; color: var(--muted); font-size: 15px">Definir lotes de compra y negociar el costo por pedido con proveedores.</p>
+</details>
+<p style="margin: 0; font-size: 13px; color: var(--muted)">En móvil, el orden es: control → indicadores → gráfica → parámetros → explicación. Las explicaciones se pliegan en acordeones.</p>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":1720}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

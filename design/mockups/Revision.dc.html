@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SimEco · Revisión continua vs. periódica</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F7F9;--surface:#FFFFFF;--surface-2:#EEF1F5;--ink:#12151B;--muted:#4F5866;--line:#DCE1E8;--accent:#1D5BD8;--accent-soft:#E6EEFC;--accent-2:#B4500B;--accent-2-soft:#FCEEE3;--ok:#1A7A4C;--font-head:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif}
+body{margin:0;background:var(--bg)}
+a{color:var(--accent)}a:hover{color:#163F99}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;margin:0;height:28px;accent-color:#1D5BD8}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5">
+<header style="background: var(--surface); border-bottom: 1px solid var(--line)">
+<div style="max-width: 1280px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); min-height: 44px">
+<svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1D5BD8"></rect><path d="M7 21 L13 14 L18 18 L25 9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-family: var(--font-head); font-weight: 700; font-size: 19px">SimEco</span>
+</a>
+<nav aria-label="Simulaciones" style="flex: 1 1 400px; min-width: 0; overflow-x: auto">
+<div style="display: flex; gap: 4px; white-space: nowrap; font-size: 14px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="8">
+<a href="{{n.href}}" aria-current="{{n.current}}" style="padding: 10px 12px; border-radius: 8px; text-decoration: none; color: {{n.fg}}; background: {{n.bg}}; font-weight: {{n.weight}}">{{n.label}}</a>
+</sc-for>
+</div>
+</nav>
+</div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 28px 24px 72px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 14px; color: var(--muted)"><a href="Main.dc.html">Inicio</a> / Inventarios</p>
+<h1 style="margin: 0; font-family: var(--font-head); font-size: clamp(30px, 4vw, 44px); line-height: 1.1">Sistemas de revisión: continua vs. periódica</h1>
+<p style="margin: 0; font-size: 18px; color: var(--muted); max-width: 780px">Dos políticas enfrentan exactamente la misma demanda. La revisión continua (Q, R) vigila el inventario todo el tiempo y pide una cantidad fija. La periódica (T, S) solo revisa cada T días y completa hasta un nivel objetivo.</p>
+</div>
+
+<section aria-label="Control de la simulación" style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<span role="status" aria-live="polite" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: {{st.bg}}; color: {{st.fg}}"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: {{st.fg}}"></span>{{st.label}}</span>
+<span style="font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums">Día {{t}} de 365</span>
+<div style="flex-grow: 1"></div>
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted)">Semilla
+<input type="number" min="1" max="9999" value="{{seed}}" onChange="{{setSeed}}" style="width: 88px; min-height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); font: 15px var(--font-body); color: var(--ink)">
+</label>
+<button type="button" onClick="{{toggle}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 600 15px var(--font-body); cursor: pointer">{{playLabel}}</button>
+<button type="button" onClick="{{step}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">+7 días</button>
+<button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">Reiniciar</button>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<aside aria-labelledby="par-h" style="flex: 1 1 300px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+<h2 id="par-h" style="margin: 0; font-family: var(--font-head); font-size: 20px">Parámetros</h2>
+<sc-for list="{{params}}" as="p" hint-placeholder-count="6">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 15px">
+<label for="{{p.id}}" style="font-weight: 600">{{p.label}}</label>
+<output for="{{p.id}}" style="font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600">{{p.shown}}</output>
+</div>
+<input id="{{p.id}}" type="range" min="{{p.min}}" max="{{p.max}}" step="{{p.step}}" value="{{p.value}}" onChange="{{p.onChange}}" aria-describedby="{{p.hid}}" aria-valuetext="{{p.shown}}">
+<span id="{{p.hid}}" style="font-size: 13px; color: var(--muted)">{{p.hint}}</span>
+</div>
+</sc-for>
+<p style="margin: 0; font-size: 13px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px">Costos fijos del escenario: $50 por pedido, $2 por unidad-año almacenada y $5 por unidad no surtida.</p>
+</aside>
+
+<section aria-label="Resultados" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 8px 4px; overflow-x: auto">
+<table style="border-collapse: collapse; width: 100%; min-width: 480px; font-variant-numeric: tabular-nums; font-size: 15px">
+<caption style="text-align: left; padding: 10px 16px; font-family: var(--font-head); font-size: 18px; font-weight: 600">Comparación al día {{t}}</caption>
+<thead><tr><th scope="col" style="text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--line); color: var(--muted); font-weight: 500">Indicador</th><th scope="col" style="text-align: right; padding: 10px 16px; border-bottom: 1px solid var(--line); color: #1D5BD8">Continua (Q, R)</th><th scope="col" style="text-align: right; padding: 10px 16px; border-bottom: 1px solid var(--line); color: #B4500B">Periódica (T, S)</th></tr></thead>
+<tbody>
+<sc-for list="{{cmp}}" as="r" hint-placeholder-count="7">
+<tr><th scope="row" style="text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--surface-2); font-weight: 500">{{r.k}}</th><td style="padding: 10px 16px; text-align: right; border-bottom: 1px solid var(--surface-2); font-weight: {{r.wq}}">{{r.q}}</td><td style="padding: 10px 16px; text-align: right; border-bottom: 1px solid var(--surface-2); font-weight: {{r.wp}}">{{r.p}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Inventario disponible con cada política</figcaption>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #1D5BD8"></span>Continua (Q, R)</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #B4500B"></span>Periódica (T, S)</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 2px; height: 12px; background: #9AA3AF"></span>Día de revisión</span>
+</div>
+</div>
+<svg viewBox="0 0 720 320" style="width: 100%; height: auto; display: block" role="img" aria-label="{{alt}}">
+<path d="{{reviews}}" stroke="#E2E6EC" stroke-width="1"></path>
+<line x1="56" y1="280" x2="700" y2="280" stroke="#9AA3AF"></line>
+<line x1="56" y1="20" x2="56" y2="280" stroke="#9AA3AF"></line>
+<text x="50" y="284" text-anchor="end" font-size="12" fill="#4F5866">0</text>
+<text x="50" y="154" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y2}}</text>
+<text x="50" y="24" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y4}}</text>
+<text x="56" y="300" text-anchor="middle" font-size="12" fill="#4F5866">0</text>
+<text x="378" y="300" text-anchor="middle" font-size="12" fill="#4F5866">182</text>
+<text x="700" y="300" text-anchor="middle" font-size="12" fill="#4F5866">365</text>
+<text x="378" y="318" text-anchor="middle" font-size="12" fill="#4F5866">Día</text>
+<polyline points="{{lq}}" fill="none" stroke="#1D5BD8" stroke-width="2.2" stroke-linejoin="round"></polyline>
+<polyline points="{{lp}}" fill="none" stroke="#B4500B" stroke-width="2.2" stroke-linejoin="round"></polyline>
+</svg>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">{{alt}}</p>
+</figure>
+</section>
+</div>
+
+<section aria-labelledby="exp-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="exp-h" style="margin: 0; font-family: var(--font-head); font-size: 26px">Entender la simulación</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué simula</h3>
+<p style="margin: 0; color: var(--muted); font-size: 15px">Un año de demanda diaria aleatoria (misma semilla para ambas políticas). La continua pide Q cuando la posición cae a R. La periódica, cada T días, pide lo necesario para llevar la posición hasta S. La periódica debe protegerse durante T + L días, no solo L.</p>
+<p style="margin: 0; font-size: 14px; font-family: ui-monospace, monospace; background: var(--surface-2); padding: 10px 12px; border-radius: 8px">R = d̄·L + z·σ·√L<br>S = d̄·(T + L) + z·σ·√(T + L)<br>pedido periódico = S − posición</p>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué significa cada parámetro</h3>
+<dl style="margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
+<sc-for list="{{params}}" as="p" hint-placeholder-count="6">
+<div><dt style="display: inline; font-weight: 600">{{p.label}}: </dt><dd style="display: inline; margin: 0; color: var(--muted)">{{p.meaning}}</dd></div>
+</sc-for>
+</dl>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Efectos que vas a observar</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>Con el mismo nivel de servicio, la periódica necesita más inventario de seguridad.</li>
+<li>Los pedidos periódicos cambian de tamaño; los continuos siempre son Q.</li>
+<li>Alargar T reduce el número de revisiones y pedidos, pero sube el inventario promedio.</li>
+<li>Si T es corto, ambas políticas se parecen.</li>
+</ul>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Utilidad en los negocios</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>La continua conviene para artículos caros o críticos (clase A) con inventario en tiempo real.</li>
+<li>La periódica simplifica compras consolidadas con un proveedor que visita cada semana.</li>
+<li>Comparar el costo de vigilar el inventario contra el costo de tener más existencias.</li>
+</ul>
+</article>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'reset', t: 0, seed: 11, dbar: 20, sd: 5, L: 7, sl: 95, Q: 300, T: 14 };
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  run() {
+    var self = this;
+    clearInterval(this.iv);
+    this.iv = setInterval(function () {
+      var t = self.state.t + 3;
+      if (t >= 365) { clearInterval(self.iv); self.setState({ t: 365, mode: 'done' }); }
+      else self.setState({ t: t });
+    }, 80);
+  }
+  renderVals() {
+    var self = this, s = this.state, DAYS = 365;
+    var nav = [['Oferta y demanda', 'Oferta-demanda.dc.html'], ['Interés compuesto', 'Interes-compuesto.dc.html'], ['EOQ', 'EOQ.dc.html'], ['Punto de reorden', 'Punto-reorden.dc.html'], ['Revisión', 'Revision.dc.html'], ['Efecto látigo', 'Bullwhip.dc.html'], ['Beer Game', 'Beer-game.dc.html'], ['Colas', 'Colas.dc.html']]
+      .map(function (n, i) { var cur = i === 4; return { label: n[0], href: n[1], current: cur ? 'page' : 'false', fg: cur ? '#1D5BD8' : '#12151B', bg: cur ? '#E6EEFC' : 'transparent', weight: cur ? 600 : 500 }; });
+    var defs = [
+      { key: 'dbar', label: 'Demanda diaria promedio (d̄)', min: 5, max: 100, step: 1, unit: 'u/día', def: '20', meaning: 'consumo promedio por día.' },
+      { key: 'sd', label: 'Variabilidad diaria (σ)', min: 0, max: 20, step: 0.5, unit: 'u/día', def: '5', meaning: 'desviación estándar de la demanda diaria.' },
+      { key: 'L', label: 'Tiempo de entrega (L)', min: 1, max: 30, step: 1, unit: 'días', def: '7', meaning: 'días entre pedir y recibir, igual para ambas políticas.' },
+      { key: 'sl', label: 'Nivel de servicio', min: 80, max: 99.9, step: 0.1, unit: '%', def: '95 %', meaning: 'probabilidad objetivo de no tener faltantes en un ciclo.' },
+      { key: 'Q', label: 'Lote continuo (Q)', min: 50, max: 1000, step: 10, unit: 'u', def: '300', meaning: 'cantidad fija que pide la revisión continua.' },
+      { key: 'T', label: 'Periodo de revisión (T)', min: 1, max: 60, step: 1, unit: 'días', def: '14', meaning: 'cada cuántos días revisa la política periódica.' }
+    ];
+    var params = defs.map(function (d) {
+      var v = s[d.key];
+      return { id: 'rv-' + d.key, hid: 'rv-' + d.key + '-h', label: d.label, min: d.min, max: d.max, step: d.step, value: v, meaning: d.meaning,
+        shown: v.toLocaleString('es-MX') + ' ' + d.unit, hint: 'Rango ' + d.min + '–' + d.max + ' · por defecto ' + d.def,
+        onChange: function (e) { var o = {}; o[d.key] = parseFloat(e.target.value); self.setState(o); } };
+    });
+    var p = s.sl / 100, tt = Math.sqrt(-2 * Math.log(1 - p));
+    var z = tt - (2.515517 + 0.802853 * tt + 0.010328 * tt * tt) / (1 + 1.432788 * tt + 0.189269 * tt * tt + 0.001308 * tt * tt * tt);
+    var R = s.dbar * s.L + z * s.sd * Math.sqrt(s.L);
+    var Sup = s.dbar * (s.T + s.L) + z * s.sd * Math.sqrt(s.T + s.L);
+    var a = s.seed >>> 0;
+    var rng = function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    var dem = [];
+    for (var i = 0; i < DAYS; i++) { var u1 = Math.max(rng(), 1e-12), u2 = rng(); dem.push(Math.max(0, Math.round(s.dbar + s.sd * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)))); }
+    var sim = function (policy) {
+      var inv = R + s.Q / 2, pipe = [], out = [], short = 0, served = 0, orders = 0, sum = 0, outDays = 0, demTot = 0;
+      for (var d = 0; d < s.t; d++) {
+        pipe = pipe.filter(function (o) { if (o.at === d) { inv += o.q; return false; } return true; });
+        var sh = Math.min(inv, dem[d]); served += sh; demTot += dem[d];
+        if (sh < dem[d]) { outDays++; short += dem[d] - sh; }
+        inv -= sh; sum += inv; out.push(inv);
+        var pos = inv + pipe.reduce(function (x, o) { return x + o.q; }, 0);
+        if (policy === 'Q' && pos <= R) { pipe.push({ at: d + s.L, q: s.Q }); orders++; }
+        if (policy === 'P' && d % s.T === 0) { var q = Math.max(0, Math.round(Sup - pos)); if (q > 0) { pipe.push({ at: d + s.L, q: q }); orders++; } }
+      }
+      var n = Math.max(1, s.t);
+      var avg = sum / n;
+      var cost = 50 * orders + 2 * avg * n / 365 + 5 * short;
+      return { out: out, avg: avg, orders: orders, outDays: outDays, fill: demTot ? served / demTot * 100 : 100, short: short, cost: cost };
+    };
+    var cq = sim('Q'), cp = sim('P');
+    var yMax = Math.max(Sup, R + s.Q) * 1.1;
+    var sx = function (d) { return 56 + d / DAYS * 644; };
+    var sy = function (v) { return 280 - v / yMax * 260; };
+    var pl = function (arr) { return arr.map(function (v, d) { return sx(d + 1).toFixed(1) + ',' + sy(v).toFixed(1); }).join(' '); };
+    var rv = ''; for (var d2 = 0; d2 < DAYS; d2 += s.T) rv += 'M' + sx(d2).toFixed(1) + ' 20 V280 ';
+    var f1 = function (v) { return (Math.round(v * 10) / 10).toLocaleString('es-MX'); };
+    var money = function (v) { return '$' + Math.round(v).toLocaleString('es-MX'); };
+    var row = function (k, q, pp, lowerBetter, fmt) { var bq = lowerBetter ? q <= pp : q >= pp; return { k: k, q: fmt(q), p: fmt(pp), wq: bq ? 700 : 400, wp: bq ? 400 : 700 }; };
+    var modes = { reset: ['Reiniciada', '#EEF1F5', '#4F5866'], running: ['En curso', '#E3F3EA', '#1A7A4C'], paused: ['En pausa', '#FCEEE3', '#9A4409'], done: ['Terminada', '#E6EEFC', '#1D5BD8'] };
+    var md = modes[s.mode];
+    return {
+      nav: nav, params: params, t: s.t, seed: s.seed,
+      st: { label: md[0], bg: md[1], fg: md[2] },
+      playLabel: s.mode === 'running' ? 'Pausar' : (s.mode === 'done' ? 'Repetir' : (s.t > 0 ? 'Continuar' : 'Iniciar')),
+      toggle: function () {
+        if (s.mode === 'running') { clearInterval(self.iv); self.setState({ mode: 'paused' }); }
+        else { if (s.mode === 'done') self.setState({ t: 0 }); self.setState({ mode: 'running' }); self.run(); }
+      },
+      step: function () { clearInterval(self.iv); var t = Math.min(DAYS, s.t + 7); self.setState({ t: t, mode: t >= DAYS ? 'done' : 'paused' }); },
+      reset: function () { clearInterval(self.iv); self.setState({ t: 0, mode: 'reset' }); },
+      setSeed: function (e) { var v = parseInt(e.target.value, 10); if (v >= 1) { clearInterval(self.iv); self.setState({ seed: v, t: 0, mode: 'reset' }); } },
+      cmp: [
+        { k: 'Parámetro de control', q: 'R = ' + f1(R) + ' u', p: 'S = ' + f1(Sup) + ' u', wq: 400, wp: 400 },
+        row('Inventario promedio', cq.avg, cp.avg, true, function (v) { return f1(v) + ' u'; }),
+        row('Pedidos emitidos', cq.orders, cp.orders, true, String),
+        row('Días con faltante', cq.outDays, cp.outDays, true, String),
+        row('Tasa de surtido', cq.fill, cp.fill, false, function (v) { return f1(v) + ' %'; }),
+        row('Costo acumulado', cq.cost, cp.cost, true, money)
+      ],
+      ax: { y2: f1(yMax / 2), y4: f1(yMax) },
+      reviews: rv, lq: pl(cq.out), lp: pl(cp.out),
+      alt: 'Al día ' + s.t + ', la revisión continua mantiene ' + f1(cq.avg) + ' u en promedio con ' + cq.orders + ' pedidos y ' + cq.outDays + ' días con faltante; la periódica mantiene ' + f1(cp.avg) + ' u con ' + cp.orders + ' pedidos y ' + cp.outDays + ' días con faltante. En negritas, la mejor de cada fila.'
+    };
+  }
+}
+</script>
+</body>
+</html>

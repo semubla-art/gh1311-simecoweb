@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SimEco · Beer Game</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F7F9;--surface:#FFFFFF;--surface-2:#EEF1F5;--ink:#12151B;--muted:#4F5866;--line:#DCE1E8;--accent:#1D5BD8;--accent-soft:#E6EEFC;--accent-2:#B4500B;--accent-2-soft:#FCEEE3;--ok:#1A7A4C;--font-head:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif}
+body{margin:0;background:var(--bg)}
+a{color:var(--accent)}a:hover{color:#163F99}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;margin:0;height:28px;accent-color:#1D5BD8}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5">
+<header style="background: var(--surface); border-bottom: 1px solid var(--line)">
+<div style="max-width: 1280px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); min-height: 44px">
+<svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1D5BD8"></rect><path d="M7 21 L13 14 L18 18 L25 9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-family: var(--font-head); font-weight: 700; font-size: 19px">SimEco</span>
+</a>
+<nav aria-label="Simulaciones" style="flex: 1 1 400px; min-width: 0; overflow-x: auto">
+<div style="display: flex; gap: 4px; white-space: nowrap; font-size: 14px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="8">
+<a href="{{n.href}}" aria-current="{{n.current}}" style="padding: 10px 12px; border-radius: 8px; text-decoration: none; color: {{n.fg}}; background: {{n.bg}}; font-weight: {{n.weight}}">{{n.label}}</a>
+</sc-for>
+</div>
+</nav>
+</div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 28px 24px 72px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 14px; color: var(--muted)"><a href="Main.dc.html">Inicio</a> / Cadena de suministro</p>
+<h1 style="margin: 0; font-family: var(--font-head); font-size: clamp(30px, 4vw, 44px); line-height: 1.1">Beer Game (versión simplificada)</h1>
+<p style="margin: 0; font-size: 18px; color: var(--muted); max-width: 780px">Cuatro empresas venden cerveza en cadena: minorista, mayorista, distribuidor y fábrica. Solo el minorista ve al cliente. Juega como minorista o deja que los cuatro roles decidan solos, y mira cómo se desordena la cadena.</p>
+</div>
+
+<section aria-label="Control de la simulación" style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<span role="status" aria-live="polite" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: {{st.bg}}; color: {{st.fg}}"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: {{st.fg}}"></span>{{st.label}}</span>
+<span style="font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums">Semana {{t}} de {{T}}</span>
+<div role="radiogroup" aria-label="Modo de juego" style="display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden">
+<button type="button" role="radio" aria-checked="{{modeAuto}}" onClick="{{setAuto}}" style="min-height: 44px; padding: 0 14px; border: 0; background: {{autoBg}}; color: {{autoFg}}; font: 600 14px var(--font-body); cursor: pointer">Automático</button>
+<button type="button" role="radio" aria-checked="{{modePlay}}" onClick="{{setPlay}}" style="min-height: 44px; padding: 0 14px; border: 0; background: {{playBg}}; color: {{playFg}}; font: 600 14px var(--font-body); cursor: pointer">Jugar como minorista</button>
+</div>
+<div style="flex-grow: 1"></div>
+<label style="display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted)">Semilla
+<input type="number" min="1" max="9999" value="{{seed}}" onChange="{{setSeed}}" style="width: 88px; min-height: 44px; box-sizing: border-box; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); font: 15px var(--font-body); color: var(--ink)">
+</label>
+<sc-if value="{{isAuto}}" hint-placeholder-val="{{true}}">
+<button type="button" onClick="{{toggle}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 600 15px var(--font-body); cursor: pointer">{{playLabel}}</button>
+</sc-if>
+<button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">Reiniciar</button>
+</section>
+
+<sc-if value="{{isPlay}}" hint-placeholder-val="{{false}}">
+<section aria-labelledby="turn-h" style="background: var(--accent-soft); border: 1px solid #B9CDF3; border-radius: 14px; padding: 16px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
+<div style="flex: 1 1 280px; display: flex; flex-direction: column; gap: 2px">
+<h2 id="turn-h" style="margin: 0; font-family: var(--font-head); font-size: 18px">Tu turno · semana {{nextWeek}}</h2>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">Esta semana tus clientes pidieron {{lastDemand}} cajas. Tienes {{me.inv}} en inventario, {{me.back}} pendientes y {{me.sl}} en camino.</p>
+</div>
+<label for="bg-order" style="font-size: 15px; font-weight: 600">Tu pedido al mayorista</label>
+<div style="display: inline-flex; align-items: center; gap: 6px">
+<button type="button" onClick="{{dec}}" aria-label="Pedir una caja menos" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font: 600 20px var(--font-body); color: var(--ink); cursor: pointer">−</button>
+<input id="bg-order" type="number" min="0" max="99" value="{{draft}}" onChange="{{setDraft}}" style="width: 72px; min-height: 44px; box-sizing: border-box; text-align: center; border-radius: 10px; border: 1px solid var(--line); font: 600 18px var(--font-body); color: var(--ink)">
+<button type="button" onClick="{{inc}}" aria-label="Pedir una caja más" style="width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font: 600 20px var(--font-body); color: var(--ink); cursor: pointer">+</button>
+</div>
+<button type="button" onClick="{{submit}}" style="min-height: 44px; padding: 0 20px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 600 15px var(--font-body); cursor: pointer">Enviar pedido</button>
+</section>
+</sc-if>
+
+<section aria-label="Estado de la cadena" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px">
+<sc-for list="{{roles}}" as="r" hint-placeholder-count="4">
+<article style="background: var(--surface); border: 1px solid var(--line); border-top: 4px solid {{r.color}}; border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">{{r.name}}</h3>
+<span style="font-size: 12px; color: var(--muted)">{{r.who}}</span>
+</div>
+<dl style="margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; font-size: 14px">
+<div><dt style="color: var(--muted)">Inventario</dt><dd style="margin: 0; font-family: var(--font-head); font-size: 22px; font-weight: 600">{{r.inv}}</dd></div>
+<div><dt style="color: var(--muted)">Pendiente</dt><dd style="margin: 0; font-family: var(--font-head); font-size: 22px; font-weight: 600; color: {{r.backColor}}">{{r.back}}</dd></div>
+<div><dt style="color: var(--muted)">En camino</dt><dd style="margin: 0; font-weight: 600">{{r.sl}}</dd></div>
+<div><dt style="color: var(--muted)">Último pedido</dt><dd style="margin: 0; font-weight: 600">{{r.last}}</dd></div>
+</dl>
+<p style="margin: 0; font-size: 14px; color: var(--muted); border-top: 1px solid var(--surface-2); padding-top: 8px">Costo acumulado <strong style="color: var(--ink)">{{r.cost}}</strong> · amplificación {{r.ratio}}</p>
+</article>
+</sc-for>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="4">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; color: var(--muted)">{{k.label}}</span>
+<span style="font-family: var(--font-head); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums">{{k.value}}</span>
+<span style="font-size: 12px; color: var(--muted)">{{k.note}}</span>
+</div>
+</sc-for>
+</div>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Pedidos por semana</figcaption>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 0; border-top: 3px dotted #4F5866"></span>Cliente</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #1D5BD8"></span>Minorista</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #0F7C80"></span>Mayorista</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #B4500B"></span>Distribuidor</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #6B3FC4"></span>Fábrica</span>
+</div>
+</div>
+<svg viewBox="0 0 720 300" style="width: 100%; height: auto; display: block" role="img" aria-label="{{alt}}">
+<path d="{{grid}}" stroke="#E6E9EE" fill="none"></path>
+<line x1="56" y1="260" x2="700" y2="260" stroke="#9AA3AF"></line>
+<line x1="56" y1="20" x2="56" y2="260" stroke="#9AA3AF"></line>
+<text x="50" y="264" text-anchor="end" font-size="12" fill="#4F5866">0</text>
+<text x="50" y="144" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y2}}</text>
+<text x="50" y="24" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y4}}</text>
+<text x="56" y="280" text-anchor="middle" font-size="12" fill="#4F5866">1</text>
+<text x="700" y="280" text-anchor="middle" font-size="12" fill="#4F5866">{{T}}</text>
+<text x="378" y="296" text-anchor="middle" font-size="12" fill="#4F5866">Semana</text>
+<polyline points="{{l.f}}" fill="none" stroke="#6B3FC4" stroke-width="2.2"></polyline>
+<polyline points="{{l.d}}" fill="none" stroke="#B4500B" stroke-width="2.2"></polyline>
+<polyline points="{{l.w}}" fill="none" stroke="#0F7C80" stroke-width="2.2"></polyline>
+<polyline points="{{l.r}}" fill="none" stroke="#1D5BD8" stroke-width="2.2"></polyline>
+<polyline points="{{l.c}}" fill="none" stroke="#4F5866" stroke-width="2.5" stroke-dasharray="2 4" stroke-linecap="round"></polyline>
+</svg>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">{{alt}}</p>
+<details style="font-size: 14px">
+<summary style="cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--accent)">Ver pedidos en tabla</summary>
+<div style="overflow-x: auto; max-height: 260px; overflow-y: auto">
+<table style="border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums">
+<thead><tr><th scope="col" style="text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line)">Semana</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Cliente</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Minorista</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Mayorista</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Distribuidor</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Fábrica</th></tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+<tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--surface-2)">{{r.w}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.c}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.o0}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.o1}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.o2}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.o3}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</details>
+</figure>
+
+<section aria-labelledby="exp-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="exp-h" style="margin: 0; font-family: var(--font-head); font-size: 26px">Entender la simulación</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué simula</h3>
+<p style="margin: 0; color: var(--muted); font-size: 15px">36 semanas. El cliente pide 4 cajas las primeras 4 semanas y luego alrededor de 8 (aleatorio con la semilla). Cada envío tarda 2 semanas. Cada rol surte lo que puede, acumula pendientes y pide con la regla «anclar y ajustar»: pronóstico + corrección del inventario + corrección parcial de lo que ya viene en camino.</p>
+<p style="margin: 0; font-size: 14px; font-family: ui-monospace, monospace; background: var(--surface-2); padding: 10px 12px; border-radius: 8px">D̂ = θ·pedido recibido + (1 − θ)·D̂<br>O = máx(0, D̂ + α(12 − neto) + α·β(D̂·L − en camino))<br>costo = 0.5·inventario + 1·pendiente</p>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué significa cada parámetro</h3>
+<dl style="margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
+<div><dt style="display: inline; font-weight: 600">Inventario inicial (12 cajas): </dt><dd style="display: inline; margin: 0; color: var(--muted)">existencias de cada rol en la semana 1, también su objetivo.</dd></div>
+<div><dt style="display: inline; font-weight: 600">Retraso de envío L (2 semanas): </dt><dd style="display: inline; margin: 0; color: var(--muted)">tiempo de tránsito entre eslabones y de producción en la fábrica.</dd></div>
+<div><dt style="display: inline; font-weight: 600">θ = 0.25: </dt><dd style="display: inline; margin: 0; color: var(--muted)">peso del pedido más reciente en el pronóstico.</dd></div>
+<div><dt style="display: inline; font-weight: 600">α = 0.3: </dt><dd style="display: inline; margin: 0; color: var(--muted)">rapidez con que se corrige el inventario hacia el objetivo.</dd></div>
+<div><dt style="display: inline; font-weight: 600">β = 0.5: </dt><dd style="display: inline; margin: 0; color: var(--muted)">cuánto se toma en cuenta lo que ya viene en camino (1 = todo).</dd></div>
+<div><dt style="display: inline; font-weight: 600">Costos: </dt><dd style="display: inline; margin: 0; color: var(--muted)">$0.50 por caja en inventario y $1 por caja pendiente, cada semana.</dd></div>
+</dl>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Efectos que vas a observar</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>Un solo salto en la demanda provoca primero faltantes y después exceso de inventario.</li>
+<li>La fábrica llega a pedir más del doble de lo que compra el cliente.</li>
+<li>Olvidar lo que ya viene en camino (β bajo) es la causa principal de la sobrerreacción.</li>
+<li>Pedir con calma, cerca de la demanda real, reduce el costo de toda la cadena.</li>
+</ul>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Utilidad en los negocios</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>Capacitar equipos de compras y planeación en pensamiento sistémico.</li>
+<li>Mostrar el valor de compartir información y coordinar pedidos entre empresas.</li>
+<li>Diseñar indicadores de desempeño de toda la cadena, no de cada área.</li>
+</ul>
+</article>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'reset', play: false, t: 0, seed: 42, user: [], draft: 4 };
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  run() {
+    var self = this;
+    clearInterval(this.iv);
+    this.iv = setInterval(function () {
+      var t = self.state.t + 1;
+      if (t >= 36) { clearInterval(self.iv); self.setState({ t: 36, mode: 'done' }); }
+      else self.setState({ t: t });
+    }, 300);
+  }
+  simulate(seed, weeks, user) {
+    var L = 2, alpha = 0.3, beta = 0.5, theta = 0.25, target = 12, TT = 36;
+    var a = seed >>> 0;
+    var rng = function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+    var demand = [];
+    for (var t = 0; t < TT; t++) { if (t < 4) demand.push(4); else { var u1 = Math.max(rng(), 1e-12), u2 = rng(); demand.push(Math.max(0, Math.round(8 + 2 * Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)))); } }
+    var st = [0, 1, 2, 3].map(function () { return { inv: 12, back: 0, pipe: [4, 4], exp: 4, sl: 8, orders: [], cost: 0, shipped: 0 }; });
+    var incoming = [4, 4, 4, 4];
+    for (t = 0; t < weeks; t++) {
+      incoming[0] = demand[t];
+      var placed = [];
+      for (var i = 0; i < 4; i++) {
+        var s = st[i];
+        var arrived = s.pipe.shift();
+        s.inv += arrived; s.sl -= arrived;
+        var due = incoming[i] + s.back;
+        var ship = Math.min(s.inv, due);
+        s.inv -= ship; s.back = due - ship; s.shipped = ship;
+        s.exp = theta * incoming[i] + (1 - theta) * s.exp;
+        var net = s.inv - s.back;
+        var o = Math.max(0, Math.round(s.exp + alpha * (target - net) + alpha * beta * (s.exp * L - s.sl)));
+        if (i === 0 && user && user[t] !== undefined) o = user[t];
+        s.orders.push(o); placed.push(o); s.sl += o;
+        s.cost += 0.5 * s.inv + 1 * s.back;
+      }
+      for (i = 0; i < 4; i++) st[i].pipe.push(i < 3 ? st[i + 1].shipped : placed[3]);
+      for (i = 1; i < 4; i++) incoming[i] = placed[i - 1];
+    }
+    return { demand: demand, st: st };
+  }
+  renderVals() {
+    var self = this, s = this.state, T = 36;
+    var nav = [['Oferta y demanda', 'Oferta-demanda.dc.html'], ['Interés compuesto', 'Interes-compuesto.dc.html'], ['EOQ', 'EOQ.dc.html'], ['Punto de reorden', 'Punto-reorden.dc.html'], ['Revisión', 'Revision.dc.html'], ['Efecto látigo', 'Bullwhip.dc.html'], ['Beer Game', 'Beer-game.dc.html'], ['Colas', 'Colas.dc.html']]
+      .map(function (n, i) { var cur = i === 6; return { label: n[0], href: n[1], current: cur ? 'page' : 'false', fg: cur ? '#1D5BD8' : '#12151B', bg: cur ? '#E6EEFC' : 'transparent', weight: cur ? 600 : 500 }; });
+    var r = this.simulate(s.seed, s.t, s.play ? s.user : null);
+    var dem = r.demand.slice(0, s.t);
+    var variance = function (arr) { if (arr.length < 2) return 0; var m = arr.reduce(function (x, y) { return x + y; }, 0) / arr.length; return arr.reduce(function (x, y) { return x + (y - m) * (y - m); }, 0) / (arr.length - 1); };
+    var vD = variance(dem) || 1;
+    var names = ['Minorista', 'Mayorista', 'Distribuidor', 'Fábrica'], colors = ['#1D5BD8', '#0F7C80', '#B4500B', '#6B3FC4'];
+    var money = function (v) { return '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    var roles = r.st.map(function (x, i) {
+      return { name: names[i], color: colors[i], who: i === 0 && s.play ? 'Tú' : 'Automático', inv: x.inv, back: x.back, backColor: x.back > 0 ? '#B3261E' : '#12151B', sl: x.sl,
+        last: x.orders.length ? x.orders[x.orders.length - 1] : '—', cost: money(x.cost), ratio: s.t >= 2 ? (variance(x.orders) / vD).toFixed(2) + '×' : '—' };
+    });
+    var total = r.st.reduce(function (x, y) { return x + y.cost; }, 0);
+    var fRatio = variance(r.st[3].orders) / vD;
+    var maxO = Math.max.apply(null, [8].concat(dem, [].concat.apply([], r.st.map(function (x) { return x.orders; })))) * 1.1;
+    var sx = function (w) { return 56 + w / (T - 1) * 644; };
+    var sy = function (v) { return 260 - v / maxO * 240; };
+    var pl = function (arr) { return arr.map(function (v, w) { return sx(w).toFixed(1) + ',' + sy(v).toFixed(1); }).join(' '); };
+    var grid = ''; for (var g = 1; g <= 4; g++) grid += 'M56 ' + (260 - g * 60) + ' H700 ';
+    var modes = { reset: ['Reiniciada', '#EEF1F5', '#4F5866'], running: ['En curso', '#E3F3EA', '#1A7A4C'], paused: ['En pausa', '#FCEEE3', '#9A4409'], done: ['Terminada', '#E6EEFC', '#1D5BD8'] };
+    var md = modes[s.mode];
+    if (s.play && s.mode !== 'done') md = s.t > 0 ? ['Esperando tu pedido', '#FCEEE3', '#9A4409'] : modes.reset;
+    var resetAll = function (extra) { clearInterval(self.iv); var o = { t: 0, mode: 'reset', user: [], draft: 4 }; for (var k in extra) o[k] = extra[k]; self.setState(o); };
+    var me = r.st[0];
+    return {
+      nav: nav, t: s.t, T: T, seed: s.seed,
+      isAuto: !s.play, isPlay: s.play && s.t < T,
+      modeAuto: s.play ? 'false' : 'true', modePlay: s.play ? 'true' : 'false',
+      autoBg: s.play ? '#FFFFFF' : '#1D5BD8', autoFg: s.play ? '#12151B' : '#FFFFFF',
+      playBg: s.play ? '#1D5BD8' : '#FFFFFF', playFg: s.play ? '#FFFFFF' : '#12151B',
+      setAuto: function () { resetAll({ play: false }); },
+      setPlay: function () { resetAll({ play: true }); },
+      st: { label: md[0], bg: md[1], fg: md[2] },
+      playLabel: s.mode === 'running' ? 'Pausar' : (s.mode === 'done' ? 'Repetir' : (s.t > 0 ? 'Continuar' : 'Iniciar')),
+      toggle: function () {
+        if (s.mode === 'running') { clearInterval(self.iv); self.setState({ mode: 'paused' }); }
+        else { if (s.mode === 'done') self.setState({ t: 0 }); self.setState({ mode: 'running' }); self.run(); }
+      },
+      reset: function () { resetAll({}); },
+      setSeed: function (e) { var v = parseInt(e.target.value, 10); if (v >= 1) resetAll({ seed: v }); },
+      nextWeek: s.t + 1, lastDemand: r.demand[s.t], me: { inv: me.inv, back: me.back, sl: me.sl },
+      draft: s.draft,
+      setDraft: function (e) { self.setState({ draft: Math.max(0, Math.min(99, parseInt(e.target.value, 10) || 0)) }); },
+      dec: function () { self.setState({ draft: Math.max(0, s.draft - 1) }); },
+      inc: function () { self.setState({ draft: Math.min(99, s.draft + 1) }); },
+      submit: function () { var u = s.user.slice(0, s.t); u[s.t] = s.draft; var t = s.t + 1; self.setState({ user: u, t: t, mode: t >= T ? 'done' : 'paused' }); },
+      roles: roles,
+      kpis: [
+        { label: 'Costo total de la cadena', value: money(total), note: 'semana ' + s.t },
+        { label: 'Amplificación en la fábrica', value: s.t >= 2 ? fRatio.toFixed(2) + '×' : '—', note: 'Var(pedidos fábrica) / Var(cliente)' },
+        { label: 'Pedido máximo de la fábrica', value: r.st[3].orders.length ? String(Math.max.apply(null, r.st[3].orders)) : '—', note: 'cajas en una semana' },
+        { label: 'Demanda máxima del cliente', value: dem.length ? String(Math.max.apply(null, dem)) : '—', note: 'cajas en una semana' }
+      ],
+      grid: grid, ax: { y2: Math.round(maxO / 2), y4: Math.round(maxO) },
+      l: { c: pl(dem), r: pl(r.st[0].orders), w: pl(r.st[1].orders), d: pl(r.st[2].orders), f: pl(r.st[3].orders) },
+      alt: s.t < 2 ? 'Inicia la simulación para ver los pedidos de cada rol.' : 'En ' + s.t + ' semanas el cliente pidió como máximo ' + Math.max.apply(null, dem) + ' cajas, mientras la fábrica llegó a pedir ' + Math.max.apply(null, r.st[3].orders) + '. La varianza de los pedidos de la fábrica es ' + fRatio.toFixed(2) + ' veces la del cliente.',
+      rows: dem.map(function (c, w) { return { w: w + 1, c: c, o0: r.st[0].orders[w], o1: r.st[1].orders[w], o2: r.st[2].orders[w], o3: r.st[3].orders[w] }; })
+    };
+  }
+}
+</script>
+</body>
+</html>

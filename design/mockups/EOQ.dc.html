@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>SimEco · Cantidad económica de pedido</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Space+Grotesk:wght@500;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F6F7F9;--surface:#FFFFFF;--surface-2:#EEF1F5;--ink:#12151B;--muted:#4F5866;--line:#DCE1E8;--accent:#1D5BD8;--accent-soft:#E6EEFC;--accent-2:#B4500B;--accent-2-soft:#FCEEE3;--ok:#1A7A4C;--font-head:'Space Grotesk',system-ui,sans-serif;--font-body:'Inter',system-ui,sans-serif}
+body{margin:0;background:var(--bg)}
+a{color:var(--accent)}a:hover{color:#163F99}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+input[type=range]{width:100%;margin:0;height:28px;accent-color:#1D5BD8}
+</style>
+</helmet>
+<div style="min-height: 100vh; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5">
+<header style="background: var(--surface); border-bottom: 1px solid var(--line)">
+<div style="max-width: 1280px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px">
+<a href="Main.dc.html" style="display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); min-height: 44px">
+<svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#1D5BD8"></rect><path d="M7 21 L13 14 L18 18 L25 9" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+<span style="font-family: var(--font-head); font-weight: 700; font-size: 19px">SimEco</span>
+</a>
+<nav aria-label="Simulaciones" style="flex: 1 1 400px; min-width: 0; overflow-x: auto">
+<div style="display: flex; gap: 4px; white-space: nowrap; font-size: 14px">
+<sc-for list="{{nav}}" as="n" hint-placeholder-count="8">
+<a href="{{n.href}}" aria-current="{{n.current}}" style="padding: 10px 12px; border-radius: 8px; text-decoration: none; color: {{n.fg}}; background: {{n.bg}}; font-weight: {{n.weight}}">{{n.label}}</a>
+</sc-for>
+</div>
+</nav>
+</div>
+</header>
+
+<main style="max-width: 1280px; margin: 0 auto; padding: 28px 24px 72px; display: flex; flex-direction: column; gap: 24px">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<p style="margin: 0; font-size: 14px; color: var(--muted)"><a href="Main.dc.html">Inicio</a> / Inventarios</p>
+<h1 style="margin: 0; font-family: var(--font-head); font-size: clamp(30px, 4vw, 44px); line-height: 1.1">Cantidad económica de pedido (EOQ)</h1>
+<p style="margin: 0; font-size: 18px; color: var(--muted); max-width: 780px">¿Cuántas unidades pedir cada vez? Pedir mucho ahorra en pedidos pero llena el almacén; pedir poco hace lo contrario. El modelo EOQ encuentra el lote que equilibra ambos costos.</p>
+</div>
+
+<section aria-label="Control de la simulación" style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px">
+<span role="status" aria-live="polite" style="display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; font-size: 14px; font-weight: 600; background: {{st.bg}}; color: {{st.fg}}"><span aria-hidden="true" style="width: 8px; height: 8px; border-radius: 50%; background: {{st.fg}}"></span>{{st.label}}</span>
+<span style="font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums">Día {{day}} de 365</span>
+<div style="flex-grow: 1"></div>
+<button type="button" onClick="{{toggle}}" style="min-height: 44px; padding: 0 18px; border-radius: 10px; border: 0; background: var(--accent); color: #FFFFFF; font: 600 15px var(--font-body); cursor: pointer">{{playLabel}}</button>
+<button type="button" onClick="{{step}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">+5 días</button>
+<button type="button" onClick="{{reset}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); font: 600 15px var(--font-body); cursor: pointer">Reiniciar</button>
+<button type="button" onClick="{{useOpt}}" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #1D5BD8; background: var(--accent-soft); color: #1D5BD8; font: 600 15px var(--font-body); cursor: pointer">Usar Q*</button>
+</section>
+
+<div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start">
+<aside aria-labelledby="par-h" style="flex: 1 1 300px; min-width: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 18px">
+<h2 id="par-h" style="margin: 0; font-family: var(--font-head); font-size: 20px">Parámetros</h2>
+<sc-for list="{{params}}" as="p" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 15px">
+<label for="{{p.id}}" style="font-weight: 600">{{p.label}}</label>
+<output for="{{p.id}}" style="font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600">{{p.shown}}</output>
+</div>
+<input id="{{p.id}}" type="range" min="{{p.min}}" max="{{p.max}}" step="{{p.step}}" value="{{p.value}}" onChange="{{p.onChange}}" aria-describedby="{{p.hid}}" aria-valuetext="{{p.shown}}">
+<span id="{{p.hid}}" style="font-size: 13px; color: var(--muted)">{{p.hint}}</span>
+</div>
+</sc-for>
+</aside>
+
+<section aria-label="Resultados" style="flex: 999 1 560px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+<sc-for list="{{kpis}}" as="k" hint-placeholder-count="5">
+<div style="background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px">
+<span style="font-size: 13px; color: var(--muted)">{{k.label}}</span>
+<span style="font-family: var(--font-head); font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums">{{k.value}}</span>
+<span style="font-size: 12px; color: var(--muted)">{{k.note}}</span>
+</div>
+</sc-for>
+</div>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Costo anual según el tamaño del pedido</figcaption>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #12151B"></span>Costo total</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #1D5BD8"></span>Costo de pedir D·S/Q</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #B4500B"></span>Costo de mantener H·Q/2</span>
+</div>
+</div>
+<svg viewBox="0 0 720 320" style="width: 100%; height: auto; display: block" role="img" aria-label="{{alt}}">
+<path d="{{grid}}" stroke="#E6E9EE" fill="none"></path>
+<line x1="56" y1="280" x2="700" y2="280" stroke="#9AA3AF"></line>
+<line x1="56" y1="20" x2="56" y2="280" stroke="#9AA3AF"></line>
+<text x="50" y="284" text-anchor="end" font-size="12" fill="#4F5866">0</text>
+<text x="50" y="154" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y2}}</text>
+<text x="50" y="24" text-anchor="end" font-size="12" fill="#4F5866">{{ax.y4}}</text>
+<text x="56" y="300" text-anchor="middle" font-size="12" fill="#4F5866">0</text>
+<text x="378" y="300" text-anchor="middle" font-size="12" fill="#4F5866">{{ax.x2}}</text>
+<text x="700" y="300" text-anchor="middle" font-size="12" fill="#4F5866">{{ax.x4}}</text>
+<text x="378" y="318" text-anchor="middle" font-size="12" fill="#4F5866">Tamaño del pedido Q (u)</text>
+<polyline points="{{c.order}}" fill="none" stroke="#1D5BD8" stroke-width="2.5"></polyline>
+<polyline points="{{c.hold}}" fill="none" stroke="#B4500B" stroke-width="2.5"></polyline>
+<polyline points="{{c.total}}" fill="none" stroke="#12151B" stroke-width="3"></polyline>
+<line x1="{{c.qx}}" y1="20" x2="{{c.qx}}" y2="280" stroke="#1A7A4C" stroke-width="1.5" stroke-dasharray="5 4"></line>
+<circle cx="{{c.qx}}" cy="{{c.qy}}" r="6" fill="#1A7A4C"></circle>
+<text x="{{c.qlx}}" y="36" font-size="13" font-weight="600" fill="#1A7A4C">Q* = {{qStar}}</text>
+<circle cx="{{c.ux}}" cy="{{c.uy}}" r="7" fill="#FFFFFF" stroke="#12151B" stroke-width="3"></circle>
+<text x="{{c.ulx}}" y="{{c.uly}}" font-size="13" fill="#12151B">tu Q</text>
+</svg>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">{{alt}}</p>
+</figure>
+
+<figure style="margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; align-items: baseline">
+<figcaption style="font-family: var(--font-head); font-size: 18px; font-weight: 600">Nivel de inventario durante el año</figcaption>
+<div style="display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--muted)">
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #1A7A4C"></span>Con Q*</span>
+<span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 3px; background: #12151B"></span>Con tu Q</span>
+</div>
+</div>
+<svg viewBox="0 0 720 180" style="width: 100%; height: auto; display: block" role="img" aria-label="{{sawAlt}}">
+<line x1="56" y1="160" x2="700" y2="160" stroke="#9AA3AF"></line>
+<line x1="56" y1="10" x2="56" y2="160" stroke="#9AA3AF"></line>
+<polyline points="{{saw.opt}}" fill="none" stroke="#1A7A4C" stroke-width="2.5"></polyline>
+<polyline points="{{saw.user}}" fill="none" stroke="#12151B" stroke-width="2"></polyline>
+<text x="50" y="164" text-anchor="end" font-size="12" fill="#4F5866">0</text>
+<text x="50" y="18" text-anchor="end" font-size="12" fill="#4F5866">{{saw.top}}</text>
+<text x="700" y="176" text-anchor="end" font-size="12" fill="#4F5866">día 365</text>
+</svg>
+<p style="margin: 0; font-size: 14px; color: var(--muted)">{{sawAlt}}</p>
+<details style="font-size: 14px">
+<summary style="cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--accent)">Ver tabla de costos por tamaño de pedido</summary>
+<div style="overflow-x: auto">
+<table style="border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums">
+<thead><tr><th scope="col" style="text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line)">Q</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Pedidos/año</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Costo de pedir</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Costo de mantener</th><th scope="col" style="text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line)">Total</th></tr></thead>
+<tbody>
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+<tr><td style="padding: 6px 8px; border-bottom: 1px solid var(--surface-2)">{{r.q}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.n}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.o}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.h}}</td><td style="padding: 6px 8px; text-align: right; border-bottom: 1px solid var(--surface-2)">{{r.t}}</td></tr>
+</sc-for>
+</tbody>
+</table>
+</div>
+</details>
+</figure>
+</section>
+</div>
+
+<section aria-labelledby="exp-h" style="display: flex; flex-direction: column; gap: 16px">
+<h2 id="exp-h" style="margin: 0; font-family: var(--font-head); font-size: 26px">Entender la simulación</h2>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px">
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué simula</h3>
+<p style="margin: 0; color: var(--muted); font-size: 15px">Un artículo con demanda constante y conocida. Cada pedido cuesta S sin importar su tamaño y cada unidad guardada cuesta H al año. El inventario baja en línea recta y se repone de golpe al llegar a cero: el clásico diente de sierra.</p>
+<p style="margin: 0; font-size: 14px; font-family: ui-monospace, monospace; background: var(--surface-2); padding: 10px 12px; border-radius: 8px">Q* = √(2·D·S / H)<br>CT(Q) = D·S/Q + H·Q/2 + D·c<br>ROP = (D / 365)·L</p>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Qué significa cada parámetro</h3>
+<dl style="margin: 0; display: flex; flex-direction: column; gap: 6px; font-size: 15px">
+<sc-for list="{{params}}" as="p" hint-placeholder-count="5">
+<div><dt style="display: inline; font-weight: 600">{{p.label}}: </dt><dd style="display: inline; margin: 0; color: var(--muted)">{{p.meaning}}</dd></div>
+</sc-for>
+</dl>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Efectos que vas a observar</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>En Q* el costo de pedir es igual al de mantener.</li>
+<li>La curva del costo total es plana cerca del óptimo: equivocarse un 20 % sube el costo apenas un 2 %.</li>
+<li>Si la demanda se cuadruplica, Q* solo se duplica (crece con la raíz cuadrada).</li>
+<li>Bajar S, por ejemplo con pedidos electrónicos, permite lotes más pequeños y frecuentes.</li>
+</ul>
+</article>
+<article style="background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 8px">
+<h3 style="margin: 0; font-family: var(--font-head); font-size: 18px">Utilidad en los negocios</h3>
+<ul style="margin: 0; padding-left: 20px; color: var(--muted); font-size: 15px; display: flex; flex-direction: column; gap: 6px">
+<li>Definir lotes de compra de materias primas y refacciones.</li>
+<li>Negociar con proveedores: cuánto vale reducir el costo por pedido.</li>
+<li>Estimar el capital inmovilizado en inventario (Q*/2 · c).</li>
+</ul>
+</article>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'reset', t: 0, D: 1200, S: 50, H: 2, c: 10, Q: 400, L: 5 };
+  }
+  componentWillUnmount() { clearInterval(this.iv); }
+  run() {
+    var self = this;
+    clearInterval(this.iv);
+    this.iv = setInterval(function () {
+      var t = self.state.t + 1;
+      if (t >= 73) { clearInterval(self.iv); self.setState({ t: 73, mode: 'done' }); }
+      else self.setState({ t: t });
+    }, 120);
+  }
+  renderVals() {
+    var self = this, s = this.state, T = 73;
+    var nav = [['Oferta y demanda', 'Oferta-demanda.dc.html'], ['Interés compuesto', 'Interes-compuesto.dc.html'], ['EOQ', 'EOQ.dc.html'], ['Punto de reorden', 'Punto-reorden.dc.html'], ['Revisión', 'Revision.dc.html'], ['Efecto látigo', 'Bullwhip.dc.html'], ['Beer Game', 'Beer-game.dc.html'], ['Colas', 'Colas.dc.html']]
+      .map(function (n, i) { var cur = i === 2; return { label: n[0], href: n[1], current: cur ? 'page' : 'false', fg: cur ? '#1D5BD8' : '#12151B', bg: cur ? '#E6EEFC' : 'transparent', weight: cur ? 600 : 500 }; });
+    var money = function (v) { return '$' + v.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+    var defs = [
+      { key: 'D', label: 'Demanda anual (D)', min: 100, max: 10000, step: 100, unit: 'u/año', def: '1 200', meaning: 'unidades que se venden o consumen en un año.' },
+      { key: 'S', label: 'Costo por pedido (S)', min: 5, max: 500, step: 5, unit: '$/pedido', def: '50', meaning: 'costo fijo de emitir, transportar y recibir un pedido.' },
+      { key: 'H', label: 'Costo de mantener (H)', min: 0.5, max: 20, step: 0.5, unit: '$/u·año', def: '2', meaning: 'costo de guardar una unidad un año: capital, espacio, seguros, merma.' },
+      { key: 'c', label: 'Costo unitario (c)', min: 1, max: 100, step: 1, unit: '$/u', def: '10', meaning: 'precio de compra de cada unidad; no cambia Q* pero sí el costo total.' },
+      { key: 'L', label: 'Tiempo de entrega (L)', min: 0, max: 30, step: 1, unit: 'días', def: '5', meaning: 'días entre emitir el pedido y recibirlo; define el punto de reorden.' },
+      { key: 'Q', label: 'Tu tamaño de pedido (Q)', min: 20, max: 1500, step: 5, unit: 'u', def: '400', meaning: 'lote que eliges para compararlo con el óptimo.' }
+    ];
+    var params = defs.map(function (d) {
+      var v = s[d.key];
+      return { id: 'eoq-' + d.key, hid: 'eoq-' + d.key + '-h', label: d.label, min: d.min, max: d.max, step: d.step, value: v, meaning: d.meaning,
+        shown: v.toLocaleString('es-MX') + ' ' + d.unit, hint: 'Rango ' + d.min + '–' + d.max.toLocaleString('es-MX') + ' · por defecto ' + d.def,
+        onChange: function (e) { var o = {}; o[d.key] = parseFloat(e.target.value); self.setState(o); } };
+    });
+    var D = s.D, S = s.S, H = s.H;
+    var qs = Math.sqrt(2 * D * S / H);
+    var tc = function (q) { return D * S / q + H * q / 2; };
+    var tcOpt = tc(qs), tcU = tc(s.Q), pen = (tcU / tcOpt - 1) * 100;
+    var qMax = Math.max(qs * 3, s.Q * 1.2);
+    var yMax = Math.max(tc(qMax), tcOpt * 2.2);
+    var sx = function (q) { return 56 + q / qMax * 644; };
+    var sy = function (v) { return 280 - Math.min(v, yMax) / yMax * 260; };
+    var curve = function (f) { var p = []; for (var i = 1; i <= 80; i++) { var q = qMax * i / 80; p.push(sx(q).toFixed(1) + ',' + sy(f(q)).toFixed(1)); } return p.join(' '); };
+    var day = Math.min(365, s.t * 5);
+    var rate = D / 365;
+    var sawPts = function (Q, top) {
+      var pts = [], x0 = 56, w = 644, d = 0, cyc = Q / rate;
+      var sxd = function (dd) { return (x0 + dd / 365 * w).toFixed(1); };
+      var syv = function (v) { return (160 - v / top * 145).toFixed(1); };
+      while (d < day) { var end = Math.min(d + cyc, day); pts.push(sxd(d) + ',' + syv(Q)); pts.push(sxd(end) + ',' + syv(Q - (end - d) * rate)); d = end; }
+      return pts.join(' ');
+    };
+    var top = Math.max(qs, s.Q) * 1.05;
+    var grid = ''; for (var g = 1; g <= 4; g++) grid += 'M56 ' + (280 - g * 65) + ' H700 ';
+    var f0 = function (v) { return Math.round(v).toLocaleString('es-MX'); };
+    var modes = { reset: ['Reiniciada', '#EEF1F5', '#4F5866'], running: ['En curso', '#E3F3EA', '#1A7A4C'], paused: ['En pausa', '#FCEEE3', '#9A4409'], done: ['Terminada', '#E6EEFC', '#1D5BD8'] };
+    var md = modes[s.mode];
+    var rows = [0.5, 0.75, 1, 1.25, 1.5, 2].map(function (k) { var q = qs * k; return { q: f0(q) + (k === 1 ? ' (Q*)' : ''), n: (D / q).toFixed(2), o: money(D * S / q), h: money(H * q / 2), t: money(tc(q)) }; });
+    return {
+      nav: nav, params: params, day: day,
+      st: { label: md[0], bg: md[1], fg: md[2] },
+      playLabel: s.mode === 'running' ? 'Pausar' : (s.mode === 'done' ? 'Repetir' : (s.t > 0 ? 'Continuar' : 'Iniciar')),
+      toggle: function () {
+        if (s.mode === 'running') { clearInterval(self.iv); self.setState({ mode: 'paused' }); }
+        else { if (s.mode === 'done') self.setState({ t: 0 }); self.setState({ mode: 'running' }); self.run(); }
+      },
+      step: function () { clearInterval(self.iv); self.setState({ t: Math.min(T, s.t + 1), mode: s.t + 1 >= T ? 'done' : 'paused' }); },
+      reset: function () { clearInterval(self.iv); self.setState({ t: 0, mode: 'reset' }); },
+      useOpt: function () { self.setState({ Q: Math.round(qs / 5) * 5 }); },
+      qStar: qs.toFixed(1),
+      kpis: [
+        { label: 'Lote óptimo Q*', value: qs.toFixed(1) + ' u', note: 'tu Q: ' + f0(s.Q) + ' u' },
+        { label: 'Pedidos por año', value: (D / qs).toFixed(2), note: 'cada ' + (365 * qs / D).toFixed(1) + ' días' },
+        { label: 'Costo anual en Q*', value: money(tcOpt), note: 'pedir + mantener' },
+        { label: 'Costo con tu Q', value: money(tcU), note: pen < 0.05 ? 'igual al óptimo' : '+' + pen.toFixed(1) + ' % sobre el óptimo' },
+        { label: 'Punto de reorden', value: (rate * s.L).toFixed(1) + ' u', note: 'pedir cuando queden estas unidades' }
+      ],
+      grid: grid,
+      ax: { y2: '$' + f0(yMax / 2), y4: '$' + f0(yMax), x2: f0(qMax / 2), x4: f0(qMax) },
+      c: { order: curve(function (q) { return D * S / q; }), hold: curve(function (q) { return H * q / 2; }), total: curve(tc),
+        qx: sx(qs).toFixed(1), qy: sy(tcOpt).toFixed(1), qlx: (sx(qs) + 8).toFixed(1),
+        ux: sx(s.Q).toFixed(1), uy: sy(tcU).toFixed(1), ulx: (sx(s.Q) + 10).toFixed(1), uly: (sy(tcU) - 10).toFixed(1) },
+      alt: 'El costo total es mínimo en Q* = ' + qs.toFixed(1) + ' u con ' + money(tcOpt) + ' al año. Con tu lote de ' + f0(s.Q) + ' u el costo es ' + money(tcU) + '.',
+      saw: { opt: sawPts(qs, top), user: sawPts(s.Q, top), top: f0(top) },
+      sawAlt: 'Hasta el día ' + day + ': con Q* se hicieron ' + Math.ceil(day / (365 * qs / D) || 0) + ' pedidos y con tu Q ' + Math.ceil(day / (365 * s.Q / D) || 0) + '. Inventario promedio: ' + (qs / 2).toFixed(1) + ' u contra ' + (s.Q / 2).toFixed(1) + ' u.',
+      rows: rows
+    };
+  }
+}
+</script>
+</body>
+</html>
