@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SimulacionEcoWeb</title>
+<meta name="description" content="SimulacionEcoWeb: ocho simulaciones dinámicas y gratuitas de economía y operaciones (oferta y demanda, interés compuesto, EOQ, punto de reorden, revisión de inventarios, efecto látigo, Beer Game y teoría de colas).">
+<meta name="theme-color" content="#1D5BD8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231D5BD8'/%3E%3Cpath d='M7 21 L13 14 L18 18 L25 9' fill='none' stroke='white' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="modulepreload" href="js/app.js">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#main" onclick="event.preventDefault();var m=document.querySelector('#main h1');if(m)m.focus();">Saltar al contenido</a>
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href="#/">
+      <svg class="brand-logo" width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect width="32" height="32" rx="8"/><path d="M7 21 L13 14 L18 18 L25 9" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="brand-name">SimulacionEcoWeb</span>
+    </a>
+    <nav class="sim-nav" aria-label="Simulaciones">
+      <ul class="nav-list" id="nav-list"></ul>
+      <label class="nav-select"><span class="sr-only">Ir a una simulación</span><select id="nav-select"></select></label>
+    </nav>
+  </div>
+</header>
+<main id="main" class="container" tabindex="-1">
+  <noscript><p>SimulacionEcoWeb necesita JavaScript activado para ejecutar las simulaciones.</p></noscript>
+</main>
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <span>SimulacionEcoWeb · herramienta educativa gratuita</span>
+    <span>Los modelos son simplificaciones didácticas; no son asesoría financiera.</span>
+  </div>
+</footer>
+</body>
+</html>

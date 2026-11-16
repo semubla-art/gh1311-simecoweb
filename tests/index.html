@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SimulacionEcoWeb · Pruebas</title>
+<style>
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 24px; color: #12151B; background: #F6F7F9; }
+  li { margin: 4px 0; } .ok { color: #1A7A4C; } .fail { color: #B3261E; } code { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Pruebas de SimulacionEcoWeb (T1–T26)</h1>
+<p>Sirve la raíz del repositorio (por ejemplo <code>npx serve .</code>) y abre <code>/tests/</code>.</p>
+<p id="summary" role="status">Ejecutando…</p>
+<ol id="list"></ol>
+<script type="module">
+  import { cases, smoke } from './cases.mjs';
+  const list = document.getElementById('list');
+  let pass = 0, fail = 0;
+  for (const [name, fn] of [...cases, ...smoke]) {
+    const li = document.createElement('li');
+    try { fn(); li.className = 'ok'; li.textContent = '✔ ' + name; pass++; }
+    catch (e) { li.className = 'fail'; li.textContent = '✘ ' + name + ' — ' + e.message; fail++; }
+    list.append(li);
+  }
+  document.getElementById('summary').textContent = `${pass} correctas, ${fail} con error.`;
+  document.title = (fail ? '✘ ' : '✔ ') + document.title;
+</script>
+</body>
+</html>
